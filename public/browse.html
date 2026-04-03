@@ -216,12 +216,14 @@
             updateCartCount();
         });
 
+        // ✅ FIXED: Books from static JSON file, not API
         async function fetchBooks() {
             const booksGrid = document.getElementById('books-grid');
             booksGrid.innerHTML = '<div class="loader"></div>';
 
             try {
-                const response = await fetch('/api/books');
+                // ✅ Changed from /api/books to /books.json
+                const response = await fetch('/books.json');
 
                 if (!response.ok) {
                     throw new Error(`HTTP ${response.status}`);
@@ -263,12 +265,14 @@
             }
         }
 
+        // ✅ FIXED: Search from static JSON
         async function fetchSearch(query) {
             const booksGrid = document.getElementById('books-grid');
             booksGrid.innerHTML = '<div class="loader"></div>';
 
             try {
-                const response = await fetch(`/api/books/search?q=${encodeURIComponent(query)}`);
+                // ✅ Changed from API to static JSON
+                const response = await fetch('/books.json');
 
                 if (!response.ok) {
                     throw new Error(`HTTP ${response.status}`);
@@ -280,7 +284,13 @@
                     books = [];
                 }
 
-                renderBooks(books);
+                // Filter by search query
+                const filteredBooks = books.filter(book =>
+                    book.title.toLowerCase().includes(query.toLowerCase()) ||
+                    (book.author && book.author.toLowerCase().includes(query.toLowerCase()))
+                );
+
+                renderBooks(filteredBooks);
 
             } catch (error) {
                 console.error('Error searching books:', error);
