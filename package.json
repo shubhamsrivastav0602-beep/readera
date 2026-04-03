@@ -2,6 +2,7 @@
   "name": "readera-ebook-store",
   "version": "1.0.0",
   "description": "A comprehensive Kindle-like eBook store application.",
+  "type": "module",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
