@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Readera - Discover Your Next Read</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;1,400&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <nav>
+        <div class="nav-brand">
+            <a href="index.html">Readera</a>
+        </div>
+        <div class="nav-links">
+            <a href="index.html">Home</a>
+            <a href="browse.html">Browse Books</a>
+        </div>
+        <div class="nav-user">
+            <a href="cart.html" class="cart-link">Cart (<span id="cart-count">0</span>)</a>
+            <a href="auth.html" class="btn btn-primary guest-only">Login</a>
+            
+            <!-- Authenticated Links -->
+            <a href="library.html" class="user-only">My Library</a>
+            <a href="profile.html" class="user-only" id="nav-username">Profile</a>
+            <a href="admin.html" class="admin-only">Admin</a>
+            <a href="#" id="logout-btn" class="user-only">Logout</a>
+        </div>
+    </nav>
+
+    <div class="loader" id="global-loader"></div>
+
+    <div class="container">
+        <!-- Hero Section -->
+        <section class="hero">
+            <h1>Discover Your Next Read</h1>
+            <p>Explore thousands of eBooks across genres. Instant delivery to your digital library.</p>
+            
+            <form id="search-form" class="search-container">
+                <input type="text" id="search-input" class="search-input" placeholder="Search by title, author...">
+                <button type="submit" class="btn btn-primary search-btn">Search</button>
+            </form>
+        </section>
+
+        <!-- Featured Books Section -->
+        <section>
+            <h2 class="section-title">Featured Books</h2>
+            <div class="books-grid" id="featured-books">
+                <!-- Books will be injected here via JS -->
+                 <p style="grid-column: 1/-1; text-align: center;">Loading...</p>
+            </div>
+        </section>
+    </div>
+
+    <!-- Scripts -->
+    <script src="js/api.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Fetch Featured Books
+            try {
+                const books = await fetchAPI('/books/featured');
+                renderBooks(books, 'featured-books');
+            } catch (error) {
+                document.getElementById('featured-books').innerHTML = '<p style="grid-column: 1/-1; text-align:center">Failed to load featured books.</p>';
+            }
+
+            // Search Form
+            document.getElementById('search-form').addEventListener('submit', (e) => {
+                e.preventDefault();
+                const q = document.getElementById('search-input').value;
+                if (q) window.location.href = `browse.html?search=${encodeURIComponent(q)}`;
+            });
+        });
+
+        // Helper to render books into grid
+        function renderBooks(books, containerId) {
+            const container = document.getElementById(containerId);
+            if (books.length === 0) {
+                container.innerHTML = '<p style="grid-column: 1/-1; text-align:center">No books found.</p>';
+                return;
+            }
+
+            container.innerHTML = books.map(book => `
+                <a href="book.html?id=${book.id}" class="book-card">
+                    <img src="${book.cover_url}" alt="${book.title}" class="book-cover">
+                    <div class="book-info">
+                        <h3 class="book-title">${book.title}</h3>
+                        <p class="book-author">${book.author}</p>
+                        <p class="book-price">₹${book.price}</p>
+                    </div>
+                </a>
+            `).join('');
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Book Details - Readera</title>
+    <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;1,400&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    <style>
+        .book-detail-layout {
+            display: flex;
+            gap: 40px;
+            background: var(--white);
+            padding: 40px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            margin-bottom: 40px;
+        }
+        
+        .book-cover-large {
+            width: 300px;
+            height: 450px;
+            object-fit: cover;
+            border-radius: var(--border-radius);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+
+        .book-details {
+            flex-grow: 1;
+        }
+
+        .bd-title {
+            font-size: 2.5rem;
+            margin-bottom: 5px;
+        }
+
+        .bd-author {
+            font-size: 1.2rem;
+            color: var(--text-light);
+            margin-bottom: 20px;
+            font-family: 'Lora', serif;
+        }
+
+        .bd-price {
+            font-size: 2rem;
+            color: var(--primary-color);
+            font-weight: bold;
+            margin-bottom: 20px;
+            font-family: 'Playfair Display', serif;
+        }
+
+        .bd-desc {
+            font-size: 1.1rem;
+            margin-bottom: 30px;
+            line-height: 1.8;
+            white-space: pre-line;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+        }
+
+        .action-buttons button {
+            padding: 15px 30px;
+            font-size: 1.1rem;
+        }
+
+        .meta-tags {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+            color: var(--text-light);
+        }
+
+        .meta-badge {
+            background: var(--bg-color);
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            margin-right: 10px;
+            color: var(--primary-color);
+        }
+
+        @media (max-width: 768px) {
+            .book-detail-layout {
+                flex-direction: column;
+                align-items: center;
+                text-align: center;
+                padding: 20px;
+            }
+            .action-buttons {
+                justify-content: center;
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <div class="nav-brand">
+            <a href="index.html">Readera</a>
+        </div>
+        <div class="nav-links">
+            <a href="index.html">Home</a>
+            <a href="browse.html">Browse Books</a>
+        </div>
+        <div class="nav-user">
+            <a href="cart.html" class="cart-link">Cart (<span id="cart-count">0</span>)</a>
+            <a href="auth.html" class="btn btn-primary guest-only">Login</a>
+            <a href="library.html" class="user-only">My Library</a>
+            <a href="profile.html" class="user-only" id="nav-username">Profile</a>
+            <a href="admin.html" class="admin-only">Admin</a>
+            <a href="#" id="logout-btn" class="user-only">Logout</a>
+        </div>
+    </nav>
+
+    <div class="loader" id="global-loader"></div>
+
+    <div class="container">
+        <div id="book-content">
+            <!-- Injected dynamically -->
+        </div>
+
+        <section id="similar-section" style="display:none; margin-top: 60px;">
+            <h2 class="section-title">You Might Also Like</h2>
+            <div class="books-grid" id="similar-books"></div>
+        </section>
+    </div>
+
+    <!-- Scripts -->
+    <script src="js/api.js"></script>
+    <script>
+        let currentBook = null;
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const bookId = urlParams.get('id');
+
+            if (!bookId) {
+                window.location.href = 'index.html';
+                return;
+            }
+
+            try {
+                const data = await fetchAPI(`/books/${bookId}`);
+                currentBook = data.book;
+                
+                // Let's check if user already owns it
+                let isOwned = false;
+                if (AuthService.isAuthenticated()) {
+                    const checkData = await fetchAPI(`/library/check/${bookId}`);
+                    isOwned = checkData.owned;
+                }
+
+                renderBookDetails(data.book, isOwned);
+
+                if (data.similarBooks && data.similarBooks.length > 0) {
+                    document.getElementById('similar-section').style.display = 'block';
+                    renderSimilar(data.similarBooks);
+                }
+
+            } catch(e) {
+                document.getElementById('book-content').innerHTML = `<h2>Error Loading Book</h2><p>${e.message}</p>`;
+            }
+        });
+
+        function renderBookDetails(book, isOwned) {
+            const container = document.getElementById('book-content');
+            
+            let actionBtnHtml = '';
+            if (isOwned) {
+                actionBtnHtml = `<a href="read.html?id=${book.id}" class="btn btn-primary" style="padding: 15px 30px; font-size: 1.1rem;">Read Now in Library</a>`;
+            } else {
+                actionBtnHtml = `
+                    <button class="btn btn-primary" id="buy-now-btn">Buy Now with Razorpay</button>
+                    <button class="btn btn-secondary" id="add-cart-btn">Add to Cart</button>
+                `;
+            }
+
+            container.innerHTML = `
+                <div class="book-detail-layout">
+                    <img src="${book.cover_url}" alt="${book.title}" class="book-cover-large">
+                    <div class="book-details">
+                        <h1 class="bd-title">${book.title}</h1>
+                        <h2 class="bd-author">by ${book.author}</h2>
+                        <div class="bd-price">₹${book.price}</div>
+                        <div class="bd-desc">${book.description}</div>
+                        
+                        <div class="action-buttons">
+                            ${actionBtnHtml}
+                            ${AuthService.isAuthenticated() ? `<button class="btn btn-secondary" id="wishlist-btn" title="Add to Wishlist">💙 Wishlist</button>` : ''}
+                        </div>
+
+                        <div class="meta-tags">
+                            <span class="meta-badge">${book.genre}</span>
+                            <span class="meta-badge">ISBN: 978-0-123456-47-2</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="sample-section" style="background:var(--white); padding: 40px; border-radius:var(--border-radius); box-shadow:var(--shadow);">
+                    <h2 style="margin-bottom: 20px;">Sample Chapter</h2>
+                    <div class="bd-desc">${book.sample_content || "No sample available."}</div>
+                </div>
+            `;
+
+            if (!isOwned) {
+                document.getElementById('add-cart-btn').addEventListener('click', () => {
+                    CartService.addToCart(book);
+                });
+                
+                document.getElementById('buy-now-btn').addEventListener('click', handleInstantBuy);
+            }
+
+            const wishlistBtn = document.getElementById('wishlist-btn');
+            if (wishlistBtn) {
+                wishlistBtn.addEventListener('click', async () => {
+                    try {
+                        await fetchAPI('/wishlist/add', { method: 'POST', body: { bookId: book.id }});
+                        showToast('Added to wishlist!');
+                    } catch(e) { /* Error handled in api */ }
+                });
+            }
+        }
+
+        async function handleInstantBuy() {
+            if (!AuthService.isAuthenticated()) {
+                window.location.href = 'auth.html?redirect=' + encodeURIComponent(window.location.href);
+                return;
+            }
+
+            try {
+                // Create Order
+                const orderData = await fetchAPI('/orders/create', {
+                    method: 'POST',
+                    body: { amount: currentBook.price, bookIds: [currentBook.id] }
+                });
+
+                const options = {
+                    key: "rzp_test_YourTestKeyIdHere", // Will fall back or use dummy
+                    amount: orderData.amount,
+                    currency: orderData.currency,
+                    name: "Readera",
+                    description: `Purchase ${currentBook.title}`,
+                    order_id: orderData.order_id,
+                    handler: async function (response) {
+                        try {
+                            await fetchAPI('/orders/verify-payment', {
+                                method: 'POST',
+                                body: {
+                                    razorpay_order_id: response.razorpay_order_id,
+                                    razorpay_payment_id: response.razorpay_payment_id,
+                                    razorpay_signature: response.razorpay_signature,
+                                    bookIds: [currentBook.id]
+                                }
+                            });
+                            showToast('Payment successful! Book added to library.');
+                            setTimeout(() => window.location.href = 'library.html', 2000);
+                        } catch (err) {
+                            showToast('Payment verification failed!', 'error');
+                        }
+                    },
+                    prefill: {
+                        name: AuthService.getUser().name,
+                        email: AuthService.getUser().email
+                    },
+                    theme: { color: "#2b3a55" }
+                };
+                
+                const rzp = new Razorpay(options);
+                rzp.open();
+
+            } catch (err) {
+                console.error("Order creation failed", err);
+            }
+        }
+
+        function renderSimilar(books) {
+            const container = document.getElementById('similar-books');
+            container.innerHTML = books.map(book => `
+                <a href="book.html?id=${book.id}" class="book-card">
+                    <img src="${book.cover_url}" alt="${book.title}" class="book-cover" style="height:250px;">
+                    <div class="book-info">
+                        <h3 class="book-title" style="font-size:1rem;">${book.title}</h3>
+                        <p class="book-price" style="font-size:1rem;">₹${book.price}</p>
+                    </div>
+                </a>
+            `).join('');
+        }
+    </script>
+</body>
+</html>

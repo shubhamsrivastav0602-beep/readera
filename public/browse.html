@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Browse Books - Readera</title>
+    <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;1,400&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .page-layout {
+            display: flex;
+            gap: 30px;
+        }
+        .sidebar {
+            width: 250px;
+            flex-shrink: 0;
+            background: var(--white);
+            padding: 20px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            height: fit-content;
+        }
+        .main-content {
+            flex-grow: 1;
+        }
+        .filter-group {
+            margin-bottom: 20px;
+        }
+        .filter-group h4 {
+            margin-bottom: 15px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 5px;
+        }
+        .pagination {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 40px;
+        }
+        .page-btn {
+            border: 1px solid var(--primary-color);
+            background: var(--white);
+            padding: 5px 12px;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+        .page-btn.active {
+            background: var(--primary-color);
+            color: var(--white);
+        }
+        
+        @media (max-width: 768px) {
+            .page-layout {
+                flex-direction: column;
+            }
+            .sidebar {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <div class="nav-brand">
+            <a href="index.html">Readera</a>
+        </div>
+        <div class="nav-links">
+            <a href="index.html">Home</a>
+            <a href="browse.html" style="font-weight: bold;">Browse Books</a>
+        </div>
+        <div class="nav-user">
+            <a href="cart.html" class="cart-link">Cart (<span id="cart-count">0</span>)</a>
+            <a href="auth.html" class="btn btn-primary guest-only">Login</a>
+            <a href="library.html" class="user-only">My Library</a>
+            <a href="profile.html" class="user-only" id="nav-username">Profile</a>
+            <a href="admin.html" class="admin-only">Admin</a>
+            <a href="#" id="logout-btn" class="user-only">Logout</a>
+        </div>
+    </nav>
+
+    <div class="container">
+        <h1 class="section-title" id="page-title">All Books</h1>
+        <div class="loader" id="global-loader"></div>
+
+        <div class="page-layout">
+            <!-- Filters Sidebar -->
+            <aside class="sidebar">
+                <form id="filter-form">
+                    <div class="filter-group" id="search-group" style="display: none;">
+                        <h4>Search Results For</h4>
+                        <p id="search-term-display" style="font-weight: bold; color: var(--primary-color); word-break: break-all;"></p>
+                    </div>
+
+                    <div class="filter-group">
+                        <h4>Genre</h4>
+                        <select class="form-control" name="genre" id="filter-genre">
+                            <option value="All">All Genres</option>
+                            <option value="Fiction">Fiction</option>
+                            <option value="Non-Fiction">Non-Fiction</option>
+                            <option value="Tech">Tech</option>
+                            <option value="Self-Help">Self-Help</option>
+                            <option value="Sci-Fi">Sci-Fi</option>
+                            <option value="Biography">Biography</option>
+                            <option value="Finance">Finance</option>
+                        </select>
+                    </div>
+
+                    <div class="filter-group">
+                        <h4>Sort By</h4>
+                        <select class="form-control" name="sort" id="filter-sort">
+                            <option value="newest">Newest</option>
+                            <option value="price_asc">Price: Low to High</option>
+                            <option value="title_asc">Title: A-Z</option>
+                        </select>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary" style="width: 100%;">Apply Filters</button>
+                    <button type="button" id="clear-filters" class="btn btn-secondary" style="width: 100%; margin-top: 10px;">Clear</button>
+                </form>
+            </aside>
+
+            <!-- Main Catalog -->
+            <main class="main-content">
+                <div class="books-grid" id="books-grid"></div>
+                <div class="pagination" id="pagination"></div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="js/api.js"></script>
+    <script>
+        let currentPage = 1;
+        const limit = 6;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const searchQuery = urlParams.get('search');
+            
+            if (searchQuery) {
+                document.getElementById('search-group').style.display = 'block';
+                document.getElementById('search-term-display').textContent = `"${searchQuery}"`;
+                document.getElementById('page-title').textContent = 'Search Results';
+                fetchSearch(searchQuery);
+            } else {
+                fetchBooks();
+            }
+
+            document.getElementById('filter-form').addEventListener('submit', (e) => {
+                e.preventDefault();
+                currentPage = 1; // reset page on filter
+                fetchBooks();
+                // Removing search param graphically if they filter broadly
+                if (searchQuery) {
+                    window.history.pushState({}, document.title, 'browse.html');
+                    document.getElementById('search-group').style.display = 'none';
+                    document.getElementById('page-title').textContent = 'All Books';
+                }
+            });
+
+            document.getElementById('clear-filters').addEventListener('click', () => {
+                document.getElementById('filter-form').reset();
+                window.location.href = 'browse.html';
+            });
+        });
+
+        async function fetchBooks() {
+            const genre = document.getElementById('filter-genre').value;
+            const sort = document.getElementById('filter-sort').value;
+            
+            try {
+                const data = await fetchAPI(`/books?genre=${genre}&sort=${sort}&page=${currentPage}&limit=${limit}`);
+                renderGrid(data.books);
+                renderPagination(data.pagination);
+            } catch (err) {
+                console.error(err);
+                document.getElementById('books-grid').innerHTML = '<p>Error loading books.</p>';
+            }
+        }
+
+        async function fetchSearch(query) {
+            try {
+                // simple search API (bypasses standard filters temporarily for simplicity)
+                const books = await fetchAPI(`/books/search?q=${encodeURIComponent(query)}`);
+                renderGrid(books);
+                document.getElementById('pagination').innerHTML = ''; // no pagination for search in this basic setup
+            } catch (err) {
+                console.error(err);
+                document.getElementById('books-grid').innerHTML = '<p>Error searching books.</p>';
+            }
+        }
+
+        function renderGrid(books) {
+            const container = document.getElementById('books-grid');
+            if (!books || books.length === 0) {
+                container.innerHTML = '<p>No books found matching criteria.</p>';
+                return;
+            }
+
+            container.innerHTML = books.map(book => `
+                <a href="book.html?id=${book.id}" class="book-card">
+                    <img src="${book.cover_url}" alt="${book.title}" class="book-cover">
+                    <div class="book-info">
+                        <h3 class="book-title">${book.title}</h3>
+                        <p class="book-author">${book.author}</p>
+                        <p class="book-price">₹${book.price}</p>
+                    </div>
+                </a>
+            `).join('');
+        }
+
+        function renderPagination({ total, page, pages }) {
+            const container = document.getElementById('pagination');
+            if (pages <= 1) {
+                container.innerHTML = '';
+                return;
+            }
+
+            let html = '';
+            for (let i = 1; i <= pages; i++) {
+                html += `<button class="page-btn ${i === page ? 'active' : ''}" onclick="goToPage(${i})">${i}</button>`;
+            }
+            container.innerHTML = html;
+        }
+
+        function goToPage(page) {
+            currentPage = page;
+            fetchBooks();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+    </script>
+</body>
+</html>

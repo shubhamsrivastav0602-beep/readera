@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shopping Cart - Readera</title>
+    <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;1,400&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    <style>
+        .cart-layout {
+            display: flex;
+            gap: 30px;
+            margin-top: 20px;
+        }
+
+        .cart-items {
+            flex-grow: 1;
+            background: var(--white);
+            border-radius: var(--border-radius);
+            padding: 20px;
+            box-shadow: var(--shadow);
+        }
+
+        .cart-item {
+            display: flex;
+            gap: 20px;
+            padding: 20px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .cart-item:last-child {
+            border-bottom: none;
+        }
+
+        .ci-img {
+            width: 80px;
+            height: 120px;
+            object-fit: cover;
+            border-radius: 4px;
+        }
+
+        .ci-details {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .ci-title { font-size: 1.2rem; margin-bottom: 5px; }
+        .ci-author { color: var(--text-light); }
+        
+        .ci-price {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+
+        .ci-actions {
+            display: flex;
+            align-items: center;
+        }
+
+        .remove-btn {
+            color: #e74c3c;
+            background: none;
+            border: none;
+            cursor: pointer;
+            text-decoration: underline;
+        }
+
+        .cart-summary {
+            width: 350px;
+            background: var(--white);
+            border-radius: var(--border-radius);
+            padding: 30px;
+            box-shadow: var(--shadow);
+            height: fit-content;
+        }
+
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+            font-size: 1.1rem;
+        }
+
+        .summary-total {
+            border-top: 2px solid #eee;
+            padding-top: 15px;
+            margin-top: 15px;
+            font-size: 1.3rem;
+            font-weight: bold;
+        }
+
+        .checkout-btn {
+            width: 100%;
+            margin-top: 20px;
+            padding: 15px;
+            font-size: 1.1rem;
+        }
+
+        @media (max-width: 768px) {
+            .cart-layout { flex-direction: column; }
+            .cart-summary { width: 100%; }
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <div class="nav-brand">
+            <a href="index.html">Readera</a>
+        </div>
+        <div class="nav-links">
+            <a href="index.html">Home</a>
+            <a href="browse.html">Browse Books</a>
+        </div>
+        <div class="nav-user">
+            <a href="cart.html" class="cart-link" style="font-weight: bold;">Cart (<span id="cart-count">0</span>)</a>
+            <a href="auth.html" class="btn btn-primary guest-only">Login</a>
+            <a href="library.html" class="user-only">My Library</a>
+            <a href="profile.html" class="user-only" id="nav-username">Profile</a>
+            <a href="#" id="logout-btn" class="user-only">Logout</a>
+        </div>
+    </nav>
+
+    <div class="loader" id="global-loader"></div>
+
+    <div class="container">
+        <h1 class="section-title">Shopping Cart</h1>
+
+        <div class="cart-layout" id="cart-layout">
+            <div class="cart-items" id="cart-items-container">
+                <!-- Injected via JS -->
+            </div>
+
+            <div class="cart-summary" id="cart-summary-col">
+                <h3 style="margin-bottom: 20px;">Order Summary</h3>
+                <div class="summary-row">
+                    <span>Subtotal</span>
+                    <span id="subtotal">₹0</span>
+                </div>
+                <!-- Digital goods, ignoring complex tax for now -->
+                <div class="summary-row summary-total">
+                    <span>Total</span>
+                    <span id="total-price">₹0</span>
+                </div>
+                
+                <button class="btn btn-primary checkout-btn" id="checkout-main-btn">Proceed to Payment</button>
+            </div>
+        </div>
+        <div id="empty-cart-msg" style="display:none; text-align:center; padding: 40px;">
+            <h2>Your cart is empty.</h2>
+            <br>
+            <a href="browse.html" class="btn btn-primary">Browse Books</a>
+        </div>
+    </div>
+
+    <script src="js/api.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            renderCart();
+
+            document.getElementById('checkout-main-btn').addEventListener('click', handleCheckout);
+        });
+
+        function renderCart() {
+            const cartItems = CartService.getCart();
+            const layout = document.getElementById('cart-layout');
+            const emptyMsg = document.getElementById('empty-cart-msg');
+            const container = document.getElementById('cart-items-container');
+
+            if (cartItems.length === 0) {
+                layout.style.display = 'none';
+                emptyMsg.style.display = 'block';
+                return;
+            }
+
+            layout.style.display = 'flex';
+            emptyMsg.style.display = 'none';
+
+            let total = 0;
+            container.innerHTML = cartItems.map(item => {
+                total += item.price;
+                return `
+                <div class="cart-item">
+                    <img src="${item.cover_url}" class="ci-img">
+                    <div class="ci-details">
+                        <div class="ci-title">${item.title}</div>
+                        <div class="ci-author">${item.author}</div>
+                        <div style="margin-top:auto"><button class="remove-btn" onclick="removeItem(${item.id})">Remove</button></div>
+                    </div>
+                    <div class="ci-actions">
+                        <div class="ci-price">₹${item.price}</div>
+                    </div>
+                </div>
+                `;
+            }).join('');
+
+            document.getElementById('subtotal').textContent = `₹${total}`;
+            document.getElementById('total-price').textContent = `₹${total}`;
+        }
+
+        function removeItem(id) {
+            CartService.removeFromCart(id);
+            renderCart();
+        }
+
+        async function handleCheckout() {
+            if (!AuthService.isAuthenticated()) {
+                window.location.href = 'auth.html?redirect=cart.html';
+                return;
+            }
+
+            const cart = CartService.getCart();
+            if (cart.length === 0) return;
+
+            const amount = cart.reduce((sum, item) => sum + item.price, 0);
+            const bookIds = cart.map(item => item.id);
+
+            try {
+                const orderData = await fetchAPI('/orders/create', {
+                    method: 'POST',
+                    body: { amount, bookIds }
+                });
+
+                const options = {
+                    key: "rzp_test_YourTestKeyIdHere", // Will fall back to dummy if env config misses
+                    amount: orderData.amount,
+                    currency: orderData.currency,
+                    name: "Readera",
+                    description: `Purchase of ${cart.length} books`,
+                    order_id: orderData.order_id,
+                    handler: async function (response) {
+                        try {
+                            await fetchAPI('/orders/verify-payment', {
+                                method: 'POST',
+                                body: {
+                                    razorpay_order_id: response.razorpay_order_id,
+                                    razorpay_payment_id: response.razorpay_payment_id,
+                                    razorpay_signature: response.razorpay_signature,
+                                    bookIds
+                                }
+                            });
+                            
+                            CartService.clearCart();
+                            showToast('Payment successful! Books added to your library.');
+                            setTimeout(() => window.location.href = 'library.html', 2000);
+                        } catch (err) {
+                            showToast('Payment verification failed!', 'error');
+                        }
+                    },
+                    prefill: {
+                        name: AuthService.getUser().name,
+                        email: AuthService.getUser().email
+                    },
+                    theme: { color: "#2b3a55" }
+                };
+                
+                const rzp = new Razorpay(options);
+                rzp.open();
+                
+            } catch (err) {
+                console.error("Order creation failed", err);
+            }
+        }
+    </script>
+</body>
+</html>

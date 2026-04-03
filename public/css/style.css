@@ -1,0 +1,340 @@
+/* -----------------------------
+   CSS Variables & Typography
+-------------------------------- */
+:root {
+  --primary-color: #2b3a55; /* deep blue */
+  --secondary-color: #e8d5c4; /* cream */
+  --accent-color: #ce7777; /* soft red/brown */
+  --bg-color: #f9f6f0; /* off-white paper feel */
+  --text-dark: #333333;
+  --text-light: #777777;
+  --white: #ffffff;
+  --border-radius: 8px;
+  --transition: all 0.3s ease;
+  --shadow: 0 4px 12px rgba(0,0,0,0.05);
+  --shadow-hover: 0 8px 24px rgba(0,0,0,0.12);
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Lora', serif; /* Body text */
+  background-color: var(--bg-color);
+  color: var(--text-dark);
+  line-height: 1.6;
+}
+
+h1, h2, h3, h4, h5, h6, .brand {
+  font-family: 'Playfair Display', serif; /* Headings */
+  color: var(--primary-color);
+}
+
+a {
+  text-decoration: none;
+  color: var(--primary-color);
+  transition: var(--transition);
+}
+
+a:hover {
+  color: var(--accent-color);
+}
+
+button, .btn {
+  font-family: 'Lora', serif;
+  cursor: pointer;
+  border: none;
+  border-radius: var(--border-radius);
+  padding: 10px 20px;
+  font-size: 1rem;
+  transition: var(--transition);
+  display: inline-block;
+  text-align: center;
+}
+
+.btn-primary {
+  background-color: var(--primary-color);
+  color: var(--white) !important;
+}
+
+.btn-primary:hover {
+  background-color: var(--accent-color);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow);
+}
+
+.btn-secondary {
+  background-color: transparent;
+  color: var(--primary-color);
+  border: 2px solid var(--primary-color);
+}
+
+.btn-secondary:hover {
+  background-color: var(--primary-color);
+  color: var(--white);
+}
+
+/* -----------------------------
+   Navigation
+-------------------------------- */
+nav {
+  background-color: var(--white);
+  padding: 15px 5%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: var(--shadow);
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+}
+
+.nav-brand {
+  font-size: 1.8rem;
+  font-weight: bold;
+}
+
+.nav-links {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+}
+
+.nav-links a {
+  font-weight: 500;
+}
+
+.nav-user {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.user-only, .admin-only {
+  display: none; /* toggled via JS based on auth state */
+}
+
+/* -----------------------------
+   Layout & Container
+-------------------------------- */
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 40px 20px;
+}
+
+/* -----------------------------
+   Hero Section
+-------------------------------- */
+.hero {
+  background: linear-gradient(135deg, var(--secondary-color) 0%, #d8c3af 100%);
+  padding: 80px 20px;
+  text-align: center;
+  border-radius: var(--border-radius);
+  margin-bottom: 40px;
+}
+
+.hero h1 {
+  font-size: 3rem;
+  margin-bottom: 20px;
+}
+
+.hero p {
+  font-size: 1.2rem;
+  margin-bottom: 30px;
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Search Bar */
+.search-container {
+  display: flex;
+  max-width: 500px;
+  margin: 0 auto;
+}
+
+.search-input {
+  flex: 1;
+  padding: 12px 20px;
+  border: none;
+  border-radius: 25px 0 0 25px;
+  outline: none;
+  font-size: 1rem;
+  font-family: inherit;
+}
+
+.search-btn {
+  border-radius: 0 25px 25px 0;
+  padding: 12px 25px;
+}
+
+/* -----------------------------
+   Grid & Card (Books)
+-------------------------------- */
+.section-title {
+  font-size: 2rem;
+  margin-bottom: 30px;
+  text-align: center;
+}
+
+.books-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 30px;
+}
+
+.book-card {
+  background: var(--white);
+  border-radius: var(--border-radius);
+  overflow: hidden;
+  box-shadow: var(--shadow);
+  transition: var(--transition);
+  display: flex;
+  flex-direction: column;
+}
+
+.book-card:hover {
+  transform: translateY(-5px);
+  box-shadow: var(--shadow-hover);
+}
+
+.book-cover {
+  width: 100%;
+  height: 320px;
+  object-fit: cover;
+}
+
+.book-info {
+  padding: 15px;
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.book-title {
+  font-size: 1.2rem;
+  margin-bottom: 5px;
+}
+
+.book-author {
+  color: var(--text-light);
+  font-size: 0.9rem;
+  margin-bottom: 10px;
+}
+
+.book-price {
+  font-weight: bold;
+  font-size: 1.1rem;
+  color: var(--primary-color);
+  margin-top: auto;
+  margin-bottom: 10px;
+}
+
+/* -----------------------------
+   Forms & Auth
+-------------------------------- */
+.auth-container {
+  max-width: 400px;
+  margin: 60px auto;
+  background: var(--white);
+  padding: 40px;
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow);
+}
+
+.auth-container h2 {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.form-group {
+  margin-bottom: 15px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: 500;
+}
+
+.form-control {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-family: inherit;
+  font-size: 1rem;
+}
+
+.form-control:focus {
+  outline: none;
+  border-color: var(--primary-color);
+}
+
+.auth-toggle {
+  text-align: center;
+  margin-top: 20px;
+  font-size: 0.9rem;
+}
+
+/* -----------------------------
+   Toasts & Loaders
+-------------------------------- */
+#toast-container {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 9999;
+}
+
+.toast {
+  background: var(--primary-color);
+  color: var(--white);
+  padding: 15px 25px;
+  border-radius: 4px;
+  margin-top: 10px;
+  box-shadow: var(--shadow-hover);
+  opacity: 0;
+  transform: translateY(20px);
+  animation: slideIn 0.3s forwards, fadeOut 0.3s forwards 2.7s;
+}
+
+.toast.error {
+  background: #e74c3c;
+}
+
+@keyframes slideIn {
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeOut {
+  to { opacity: 0; transform: translateY(-10px); }
+}
+
+.loader {
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid var(--primary-color);
+  border-radius: 50%;
+  width: 30px;
+  height: 30px;
+  animation: spin 1s linear infinite;
+  margin: 20px auto;
+  display: none;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* -----------------------------
+   Responsive
+-------------------------------- */
+@media (max-width: 768px) {
+  .nav-links {
+    display: none; /* simple hidden state, real mobile nav needed for prod */
+  }
+}

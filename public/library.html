@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Library - Readera</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;1,400&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <nav>
+        <div class="nav-brand">
+            <a href="index.html">Readera</a>
+        </div>
+        <div class="nav-links">
+            <a href="index.html">Home</a>
+            <a href="browse.html">Browse Books</a>
+        </div>
+        <div class="nav-user">
+            <!-- Nav updates dynamically via api.js -->
+            <a href="cart.html" class="cart-link">Cart (<span id="cart-count">0</span>)</a>
+            <a href="auth.html" class="btn btn-primary guest-only">Login</a>
+            
+            <!-- Authenticated Links -->
+            <a href="library.html" class="user-only">My Library</a>
+            <a href="profile.html" class="user-only" id="nav-username">Profile</a>
+            <a href="#" id="logout-btn" class="user-only">Logout</a>
+        </div>
+    </nav>
+
+    <div class="loader" id="global-loader"></div>
+
+    <div class="container" style="min-height: 80vh;">
+        <h1 class="section-title">My Digital Library</h1>
+        <div id="library-grid" class="books-grid">
+            <!-- Books will be injected here via JS -->
+             <p style="grid-column: 1/-1; text-align: center;">Loading your books...</p>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="js/api.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            if (!AuthService.isAuthenticated()) {
+                window.location.href = 'auth.html';
+                return;
+            }
+
+            try {
+                const books = await fetchAPI('/library');
+                renderLibrary(books);
+            } catch (error) {
+                document.getElementById('library-grid').innerHTML = '<p style="grid-column: 1/-1; text-align:center">Failed to load library.</p>';
+            }
+        });
+
+        function renderLibrary(books) {
+            const container = document.getElementById('library-grid');
+            if (books.length === 0) {
+                container.innerHTML = `
+                    <div style="grid-column: 1/-1; text-align: center; padding: 40px;">
+                        <p>You haven't purchased any books yet.</p>
+                        <a href="browse.html" class="btn btn-primary" style="margin-top: 20px;">Browse Catalog</a>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = books.map(book => `
+                <div class="book-card">
+                    <img src="${book.cover_url}" alt="${book.title}" class="book-cover">
+                    <div class="book-info">
+                        <h3 class="book-title">${book.title}</h3>
+                        <p class="book-author">${book.author}</p>
+                        <a href="read.html?id=${book.id}" class="btn btn-primary" style="margin-top: auto;">Read Now</a>
+                    </div>
+                </div>
+            `).join('');
+        }
+    </script>
+</body>
+</html>

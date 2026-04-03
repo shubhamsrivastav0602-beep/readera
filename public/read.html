@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reading - Readera</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;1,400&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        body {
+            background-color: #fdfaf5; /* reader-friendly background */
+        }
+        .reader-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 60px 20px;
+            background: white;
+            box-shadow: 0 0 20px rgba(0,0,0,0.05);
+            min-height: 100vh;
+        }
+        .reader-header {
+            margin-bottom: 50px;
+            text-align: center;
+        }
+        .reader-content {
+            font-size: 1.25rem;
+            line-height: 1.8;
+            color: #333;
+            text-align: justify;
+        }
+        .reader-content h2, .reader-content h3 {
+            margin-top: 40px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .reader-content p {
+            margin-bottom: 25px;
+            text-indent: 20px;
+        }
+        .reader-nav {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 1001;
+        }
+    </style>
+</head>
+<body>
+    <div class="reader-nav">
+        <a href="library.html" class="btn btn-secondary">Back to Library</a>
+    </div>
+
+    <div class="loader" id="global-loader"></div>
+
+    <main class="reader-container">
+        <div id="reader-book-container">
+             <p style="text-align: center; padding: 50px;">Preparing your reading experience...</p>
+        </div>
+    </main>
+
+    <!-- Scripts -->
+    <script src="js/api.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+             if (!AuthService.isAuthenticated()) {
+                window.location.href = 'auth.html';
+                return;
+            }
+
+            const urlParams = new URLSearchParams(window.location.search);
+            const bookId = urlParams.get('id');
+
+            if (!bookId) {
+                window.location.href = 'library.html';
+                return;
+            }
+
+            try {
+                const book = await fetchAPI(`/library/read/${bookId}`);
+                renderBookContent(book);
+                document.title = `${book.title} - Readera`;
+            } catch (error) {
+                document.getElementById('reader-book-container').innerHTML = `
+                    <div style="text-align: center; padding: 50px;">
+                        <h2>Oops! Project Access Denied</h2>
+                        <p>You don't have access to this book. Please ensure you've purchased it.</p>
+                        <a href="browse.html" class="btn btn-primary" style="margin-top: 20px;">Browse Store</a>
+                    </div>
+                `;
+            }
+        });
+
+        function renderBookContent(book) {
+            const container = document.getElementById('reader-book-container');
+            container.innerHTML = `
+                <div class="reader-header">
+                    <h1>${book.title}</h1>
+                    <p class="book-author">By ${book.author}</p>
+                </div>
+                <div class="reader-content">
+                    ${book.content}
+                </div>
+            `;
+        }
+    </script>
+</body>
+</html>
