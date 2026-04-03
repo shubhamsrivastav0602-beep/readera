@@ -1,102 +1,93 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Book Details - Readera</title>
-    <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;1,400&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;1,400&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap"
+        rel="stylesheet">
     <link rel="stylesheet" href="css/style.css">
-    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
     <style>
-        .book-detail-layout {
+        .book-detail {
             display: flex;
             gap: 40px;
-            background: var(--white);
-            padding: 40px;
-            border-radius: var(--border-radius);
-            box-shadow: var(--shadow);
-            margin-bottom: 40px;
+            margin: 40px 0;
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
         }
-        
+
         .book-cover-large {
             width: 300px;
             height: 450px;
             object-fit: cover;
-            border-radius: var(--border-radius);
-            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
         }
 
-        .book-details {
-            flex-grow: 1;
+        .book-info-large {
+            flex: 1;
         }
 
-        .bd-title {
-            font-size: 2.5rem;
-            margin-bottom: 5px;
-        }
-
-        .bd-author {
-            font-size: 1.2rem;
-            color: var(--text-light);
-            margin-bottom: 20px;
-            font-family: 'Lora', serif;
-        }
-
-        .bd-price {
+        .book-title-large {
             font-size: 2rem;
-            color: var(--primary-color);
-            font-weight: bold;
-            margin-bottom: 20px;
+            margin-bottom: 10px;
             font-family: 'Playfair Display', serif;
         }
 
-        .bd-desc {
+        .book-author-large {
+            color: #666;
+            font-size: 1.2rem;
+            margin-bottom: 20px;
+        }
+
+        .book-price-large {
+            font-size: 1.5rem;
+            color: #8B4513;
+            font-weight: bold;
+            margin: 20px 0;
+        }
+
+        .book-description {
+            line-height: 1.6;
+            margin: 20px 0;
+            color: #333;
+        }
+
+        .btn-large {
+            padding: 12px 30px;
             font-size: 1.1rem;
-            margin-bottom: 30px;
-            line-height: 1.8;
-            white-space: pre-line;
+            margin-right: 15px;
         }
 
-        .action-buttons {
-            display: flex;
-            gap: 15px;
+        .error-message {
+            text-align: center;
+            padding: 50px;
+            color: #e74c3c;
         }
 
-        .action-buttons button {
-            padding: 15px 30px;
-            font-size: 1.1rem;
-        }
-
-        .meta-tags {
-            margin-top: 30px;
-            padding-top: 20px;
-            border-top: 1px solid #eee;
-            color: var(--text-light);
-        }
-
-        .meta-badge {
-            background: var(--bg-color);
-            padding: 5px 10px;
-            border-radius: 20px;
-            font-size: 0.9rem;
-            margin-right: 10px;
-            color: var(--primary-color);
+        .loader {
+            text-align: center;
+            padding: 50px;
         }
 
         @media (max-width: 768px) {
-            .book-detail-layout {
+            .book-detail {
                 flex-direction: column;
-                align-items: center;
-                text-align: center;
-                padding: 20px;
             }
-            .action-buttons {
-                justify-content: center;
-                flex-direction: column;
+
+            .book-cover-large {
+                width: 100%;
+                max-width: 250px;
+                margin: 0 auto;
             }
         }
     </style>
 </head>
+
 <body>
     <nav>
         <div class="nav-brand">
@@ -111,184 +102,164 @@
             <a href="auth.html" class="btn btn-primary guest-only">Login</a>
             <a href="library.html" class="user-only">My Library</a>
             <a href="profile.html" class="user-only" id="nav-username">Profile</a>
-            <a href="admin.html" class="admin-only">Admin</a>
             <a href="#" id="logout-btn" class="user-only">Logout</a>
         </div>
     </nav>
 
-    <div class="loader" id="global-loader"></div>
-
     <div class="container">
         <div id="book-content">
-            <!-- Injected dynamically -->
+            <div class="loader">Loading book details...</div>
         </div>
-
-        <section id="similar-section" style="display:none; margin-top: 60px;">
-            <h2 class="section-title">You Might Also Like</h2>
-            <div class="books-grid" id="similar-books"></div>
-        </section>
     </div>
 
-    <!-- Scripts -->
     <script src="js/api.js"></script>
     <script>
         let currentBook = null;
 
-        document.addEventListener('DOMContentLoaded', async () => {
+        document.addEventListener('DOMContentLoaded', () => {
+            updateCartCount();
+            loadBookDetails();
+        });
+
+        async function loadBookDetails() {
             const urlParams = new URLSearchParams(window.location.search);
             const bookId = urlParams.get('id');
 
             if (!bookId) {
-                window.location.href = 'index.html';
+                document.getElementById('book-content').innerHTML = '<div class="error-message">No book ID provided.</div>';
                 return;
             }
 
             try {
-                const data = await fetchAPI(`/books/${bookId}`);
-                currentBook = data.book;
-                
-                // Let's check if user already owns it
-                let isOwned = false;
-                if (AuthService.isAuthenticated()) {
-                    const checkData = await fetchAPI(`/library/check/${bookId}`);
-                    isOwned = checkData.owned;
+                const response = await fetch(`/api/books/${bookId}`);
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
                 }
 
-                renderBookDetails(data.book, isOwned);
+                const book = await response.json();
+                currentBook = book;
+                renderBookDetails(book);
 
-                if (data.similarBooks && data.similarBooks.length > 0) {
-                    document.getElementById('similar-section').style.display = 'block';
-                    renderSimilar(data.similarBooks);
-                }
-
-            } catch(e) {
-                document.getElementById('book-content').innerHTML = `<h2>Error Loading Book</h2><p>${e.message}</p>`;
-            }
-        });
-
-        function renderBookDetails(book, isOwned) {
-            const container = document.getElementById('book-content');
-            
-            let actionBtnHtml = '';
-            if (isOwned) {
-                actionBtnHtml = `<a href="read.html?id=${book.id}" class="btn btn-primary" style="padding: 15px 30px; font-size: 1.1rem;">Read Now in Library</a>`;
-            } else {
-                actionBtnHtml = `
-                    <button class="btn btn-primary" id="buy-now-btn">Buy Now with Razorpay</button>
-                    <button class="btn btn-secondary" id="add-cart-btn">Add to Cart</button>
+            } catch (error) {
+                console.error('Error loading book:', error);
+                document.getElementById('book-content').innerHTML = `
+                    <div class="error-message">
+                        <h2>Error Loading Book</h2>
+                        <p>${error.message}</p>
+                        <a href="browse.html" class="btn btn-primary">Browse Books</a>
+                    </div>
                 `;
             }
+        }
 
-            container.innerHTML = `
-                <div class="book-detail-layout">
-                    <img src="${book.cover_url}" alt="${book.title}" class="book-cover-large">
-                    <div class="book-details">
-                        <h1 class="bd-title">${book.title}</h1>
-                        <h2 class="bd-author">by ${book.author}</h2>
-                        <div class="bd-price">₹${book.price}</div>
-                        <div class="bd-desc">${book.description}</div>
-                        
-                        <div class="action-buttons">
-                            ${actionBtnHtml}
-                            ${AuthService.isAuthenticated() ? `<button class="btn btn-secondary" id="wishlist-btn" title="Add to Wishlist">💙 Wishlist</button>` : ''}
-                        </div>
+        function renderBookDetails(book) {
+            if (!book) {
+                document.getElementById('book-content').innerHTML = '<div class="error-message">Book not found.</div>';
+                return;
+            }
 
-                        <div class="meta-tags">
-                            <span class="meta-badge">${book.genre}</span>
-                            <span class="meta-badge">ISBN: 978-0-123456-47-2</span>
+            const coverUrl = book.cover_url || '/images/default-cover.jpg';
+            const price = book.is_free || book.price === 0 ? 'FREE' : `₹${book.price || 0}`;
+            const isFree = book.is_free || book.price === 0;
+
+            const html = `
+                <div class="book-detail">
+                    <img src="${coverUrl}" alt="${book.title}" class="book-cover-large" onerror="this.src='/images/default-cover.jpg'">
+                    <div class="book-info-large">
+                        <h1 class="book-title-large">${escapeHtml(book.title || 'Untitled')}</h1>
+                        <p class="book-author-large">by ${escapeHtml(book.author || 'Unknown')}</p>
+                        <div class="book-price-large">${price}</div>
+                        <p class="book-description">${escapeHtml(book.description || 'No description available.')}</p>
+                        <div class="book-actions">
+                            ${isFree ?
+                    `<button class="btn btn-primary btn-large" onclick="downloadBook(${book.id})">Download Now</button>` :
+                    `<button class="btn btn-primary btn-large" onclick="buyNow(${book.id}, '${book.title}', ${book.price})">Buy Now (${price})</button>`
+                }
+                            <button class="btn btn-secondary btn-large" onclick="addToWishlist(${book.id})">❤️ Add to Wishlist</button>
                         </div>
                     </div>
-                </div>
-
-                <div class="sample-section" style="background:var(--white); padding: 40px; border-radius:var(--border-radius); box-shadow:var(--shadow);">
-                    <h2 style="margin-bottom: 20px;">Sample Chapter</h2>
-                    <div class="bd-desc">${book.sample_content || "No sample available."}</div>
                 </div>
             `;
 
-            if (!isOwned) {
-                document.getElementById('add-cart-btn').addEventListener('click', () => {
-                    CartService.addToCart(book);
-                });
-                
-                document.getElementById('buy-now-btn').addEventListener('click', handleInstantBuy);
-            }
-
-            const wishlistBtn = document.getElementById('wishlist-btn');
-            if (wishlistBtn) {
-                wishlistBtn.addEventListener('click', async () => {
-                    try {
-                        await fetchAPI('/wishlist/add', { method: 'POST', body: { bookId: book.id }});
-                        showToast('Added to wishlist!');
-                    } catch(e) { /* Error handled in api */ }
-                });
-            }
+            document.getElementById('book-content').innerHTML = html;
         }
 
-        async function handleInstantBuy() {
-            if (!AuthService.isAuthenticated()) {
-                window.location.href = 'auth.html?redirect=' + encodeURIComponent(window.location.href);
+        function escapeHtml(str) {
+            if (!str) return '';
+            return str.replace(/[&<>]/g, function (m) {
+                if (m === '&') return '&amp;';
+                if (m === '<') return '&lt;';
+                if (m === '>') return '&gt;';
+                return m;
+            });
+        }
+
+        function buyNow(bookId, title, price) {
+            // Get existing cart
+            let cart = JSON.parse(localStorage.getItem('cart') || '[]');
+
+            // Check if already in cart
+            if (!cart.find(item => item.id === bookId)) {
+                cart.push({ id: bookId, title: title, price: price });
+                localStorage.setItem('cart', JSON.stringify(cart));
+                updateCartCount();
+                alert(`${title} added to cart!`);
+            } else {
+                alert(`${title} is already in your cart.`);
+            }
+
+            // Redirect to cart page
+            window.location.href = 'cart.html';
+        }
+
+        async function addToWishlist(bookId) {
+            const token = localStorage.getItem('token');
+
+            if (!token) {
+                alert('Please login first to add to wishlist');
+                window.location.href = 'auth.html';
                 return;
             }
 
             try {
-                // Create Order
-                const orderData = await fetchAPI('/orders/create', {
+                const response = await fetch('/api/wishlist/add', {
                     method: 'POST',
-                    body: { amount: currentBook.price, bookIds: [currentBook.id] }
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ bookId: bookId })
                 });
 
-                const options = {
-                    key: "rzp_test_YourTestKeyIdHere", // Will fall back or use dummy
-                    amount: orderData.amount,
-                    currency: orderData.currency,
-                    name: "Readera",
-                    description: `Purchase ${currentBook.title}`,
-                    order_id: orderData.order_id,
-                    handler: async function (response) {
-                        try {
-                            await fetchAPI('/orders/verify-payment', {
-                                method: 'POST',
-                                body: {
-                                    razorpay_order_id: response.razorpay_order_id,
-                                    razorpay_payment_id: response.razorpay_payment_id,
-                                    razorpay_signature: response.razorpay_signature,
-                                    bookIds: [currentBook.id]
-                                }
-                            });
-                            showToast('Payment successful! Book added to library.');
-                            setTimeout(() => window.location.href = 'library.html', 2000);
-                        } catch (err) {
-                            showToast('Payment verification failed!', 'error');
-                        }
-                    },
-                    prefill: {
-                        name: AuthService.getUser().name,
-                        email: AuthService.getUser().email
-                    },
-                    theme: { color: "#2b3a55" }
-                };
-                
-                const rzp = new Razorpay(options);
-                rzp.open();
-
-            } catch (err) {
-                console.error("Order creation failed", err);
+                if (response.ok) {
+                    alert('Added to wishlist!');
+                } else {
+                    const error = await response.json();
+                    alert(error.error || 'Failed to add to wishlist');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Failed to add to wishlist');
             }
         }
 
-        function renderSimilar(books) {
-            const container = document.getElementById('similar-books');
-            container.innerHTML = books.map(book => `
-                <a href="book.html?id=${book.id}" class="book-card">
-                    <img src="${book.cover_url}" alt="${book.title}" class="book-cover" style="height:250px;">
-                    <div class="book-info">
-                        <h3 class="book-title" style="font-size:1rem;">${book.title}</h3>
-                        <p class="book-price" style="font-size:1rem;">₹${book.price}</p>
-                    </div>
-                </a>
-            `).join('');
+        function downloadBook(bookId) {
+            alert('Download feature coming soon!');
+        }
+
+        async function updateCartCount() {
+            try {
+                const cart = JSON.parse(localStorage.getItem('cart') || '[]');
+                const cartCount = document.getElementById('cart-count');
+                if (cartCount) {
+                    cartCount.textContent = cart.length;
+                }
+            } catch (e) {
+                console.error('Error updating cart:', e);
+            }
         }
     </script>
 </body>
+
 </html>
