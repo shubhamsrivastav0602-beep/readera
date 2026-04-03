@@ -2,7 +2,11 @@
     "rewrites": [
         {
             "source": "/api/(.*)",
-            "destination": "/api/books"
+            "destination": "/api/$1"
+        },
+        {
+            "source": "/(.*)",
+            "destination": "/public/$1"
         }
     ]
 }
