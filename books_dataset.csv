@@ -1,0 +1,41 @@
+id,title,author,price,description,genre
+1,The Floating City,Aarav Mehta,12.99,"Chapter 1: The city rose silently above the clouds. Arjun had never believed in anti-gravity until today...",Sci-Fi
+2,Mind Reset,Riya Kapoor,9.5,"Chapter 1: Your mind is your greatest tool. Learning to reset it begins with awareness...",Self-Help
+3,Code Beyond Limits,Karan Singh,15.0,"Chapter 1: The future of coding lies in thinking beyond syntax. This journey starts now...",Tech
+4,Life of a Visionary,Neha Sharma,11.25,"Chapter 1: Born in a small village, she dreamed of changing the world...",Biography
+5,Shadows of Truth,Ankit Verma,10.75,"Chapter 1: The night was darker than usual, hiding secrets that would soon unfold...",Fiction
+6,Galactic Drift,Vikram Joshi,13.4,"Chapter 1: Space bent around the ship as gravity lost meaning...",Sci-Fi
+7,Atomic Habits Reloaded,Simran Kaur,8.99,"Chapter 1: Small habits shape big futures. Let's begin with one tiny step...",Self-Help
+8,AI Revolution,Rohan Das,18.2,"Chapter 1: Artificial Intelligence is no longer the future—it is the present...",Tech
+9,The Iron Leader,Pooja Nair,14.1,"Chapter 1: His leadership style was forged in adversity...",Biography
+10,Lost in Time,Sahil Arora,10.0,"Chapter 1: Time slipped through his fingers as he stepped into another era...",Fiction
+11,Anti-Gravity Dreams,Dev Patel,16.75,"Chapter 1: The project began with a simple question—can gravity be defeated?...",Sci-Fi
+12,The Inner You,Meera Iyer,7.99,"Chapter 1: Discovering yourself is the first step to success...",Self-Help
+13,Python Mastery,Raj Malhotra,19.99,"Chapter 1: Python opens doors to endless possibilities...",Tech
+14,Trailblazer Story,Ananya Gupta,13.6,"Chapter 1: She walked paths no one dared to take...",Biography
+15,Silent Echoes,Kabir Khan,9.8,"Chapter 1: The echoes whispered secrets from the past...",Fiction
+16,Orbit Zero,Nikhil Bansal,14.9,"Chapter 1: Gravity failed, and humanity found freedom in space...",Sci-Fi
+17,Focus Blueprint,Tanvi Shah,8.5,"Chapter 1: Focus is the currency of success...",Self-Help
+18,Cloud Computing 101,Amit Tiwari,17.25,"Chapter 1: The cloud changed how we store and access data...",Tech
+19,Rise of a Legend,Deepak Yadav,12.4,"Chapter 1: Legends are not born; they are made...",Biography
+20,Broken Paths,Ishita Roy,10.3,"Chapter 1: Every broken path leads to a new beginning...",Fiction
+21,Gravity Hackers,Aditya Jain,15.8,"Chapter 1: They hacked gravity itself...",Sci-Fi
+22,Power Within,Sneha Reddy,9.2,"Chapter 1: True power comes from within...",Self-Help
+23,Web Dev Guide,Harsh Vardhan,18.0,"Chapter 1: Building the web starts with understanding HTML...",Tech
+24,Against All Odds,Ritu Saxena,11.9,"Chapter 1: She faced every obstacle with courage...",Biography
+25,Hidden Lies,Arjun Pillai,10.6,"Chapter 1: Lies hide in plain sight...",Fiction
+26,Zero Gravity Zone,Kunal Mehra,14.75,"Chapter 1: The lab floated as experiments began...",Sci-Fi
+27,Success Mindset,Priya Menon,8.75,"Chapter 1: Success begins with mindset...",Self-Help
+28,Java Deep Dive,Manish Kumar,20.1,"Chapter 1: Java remains a powerful programming language...",Tech
+29,The Great Reformer,Sanjay Mishra,13.3,"Chapter 1: Change starts with one voice...",Biography
+30,Midnight Tales,Varun Chopra,9.9,"Chapter 1: Midnight brought stories alive...",Fiction
+31,Astro Shift,Rakesh Nair,16.1,"Chapter 1: The stars shifted as gravity collapsed...",Sci-Fi
+32,Daily Discipline,Kritika Sethi,7.8,"Chapter 1: Discipline builds greatness...",Self-Help
+33,Data Science Pro,Abhishek Jain,21.0,"Chapter 1: Data is the new oil...",Tech
+34,Journey of Courage,Sunita Rao,12.7,"Chapter 1: Courage defined her life...",Biography
+35,Whispering Winds,Naveen Shetty,10.2,"Chapter 1: The winds carried forgotten voices...",Fiction
+36,Quantum Leap,Suresh Pillai,17.5,"Chapter 1: Quantum physics unlocked anti-gravity...",Sci-Fi
+37,Goal Crusher,Alok Srivastava,8.6,"Chapter 1: Crushing goals requires clarity...",Self-Help
+38,DevOps Simplified,Gaurav Khanna,19.4,"Chapter 1: DevOps bridges development and operations...",Tech
+39,The Bold Path,Rekha Nambiar,13.1,"Chapter 1: Bold decisions define destiny...",Biography
+40,Fragments of Reality,Imran Sheikh,10.95,"Chapter 1: Reality shattered into fragments...",Fiction

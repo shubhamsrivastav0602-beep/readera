@@ -1,14 +1,15 @@
-[
-    {
-        "id": 1,
-        "title": "The Midnight Library",
-        "author": "Matt Haig",
-        "price": 399
-    },
-    {
-        "id": 2,
-        "title": "Atomic Habits",
-        "author": "James Clear",
-        "price": 499
-    }
-]
+// scripts/convert-csv-to-json.js
+const fs = require('fs');
+const csv = require('csv-parser');
+
+const results = [];
+fs.createReadStream('books.csv')
+  .pipe(csv())
+  .on('data', (data) => results.push(data))
+  .on('end', () => {
+    fs.writeFileSync('public/books.json', JSON.stringify(results,
+    null,
+    2));
+    console.log(`✅ ${results.length
+    } books imported!`);
+});

@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Browse Books - Readera</title>
     <link
-        href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;1,400&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap"
+        href="https://fonts.googleapis.com/css2?family=Lora:wght@400;500;600&family=Playfair+Display:wght@400;700&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="css/style.css">
     <style>
@@ -18,10 +18,10 @@
         .sidebar {
             width: 250px;
             flex-shrink: 0;
-            background: var(--white);
+            background: white;
             padding: 20px;
-            border-radius: var(--border-radius);
-            box-shadow: var(--shadow);
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
             height: fit-content;
         }
 
@@ -41,7 +41,7 @@
 
         .books-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
             gap: 25px;
         }
 
@@ -51,40 +51,62 @@
             overflow: hidden;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
             transition: transform 0.2s;
-            text-decoration: none;
-            color: inherit;
-            display: block;
+            position: relative;
         }
 
         .book-card:hover {
             transform: translateY(-5px);
         }
 
+        .book-card a {
+            text-decoration: none;
+            color: inherit;
+            display: block;
+        }
+
         .book-cover {
             width: 100%;
-            height: 250px;
+            height: 260px;
             object-fit: cover;
         }
 
         .book-info {
-            padding: 15px;
+            padding: 12px;
         }
 
         .book-title {
             font-size: 1rem;
             margin: 0 0 5px 0;
+            font-weight: 600;
         }
 
         .book-author {
             color: #666;
-            font-size: 0.85rem;
+            font-size: 0.8rem;
             margin: 0 0 5px 0;
         }
 
         .book-price {
             color: #8B4513;
             font-weight: bold;
-            margin: 0;
+            margin: 5px 0;
+        }
+
+        .btn-add-cart {
+            width: calc(100% - 24px);
+            margin: 0 12px 12px 12px;
+            padding: 8px;
+            background: #8B4513;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: background 0.2s;
+        }
+
+        .btn-add-cart:hover {
+            background: #5a2d0c;
         }
 
         .free-badge {
@@ -92,7 +114,7 @@
             color: white;
             padding: 2px 8px;
             border-radius: 4px;
-            font-size: 0.75rem;
+            font-size: 0.7rem;
             display: inline-block;
         }
 
@@ -100,6 +122,43 @@
             text-align: center;
             padding: 40px;
             color: #e74c3c;
+        }
+
+        .loader {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+
+        select,
+        .form-control {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-family: inherit;
+        }
+
+        .btn-primary {
+            background: #8B4513;
+            color: white;
+            border: none;
+            padding: 10px;
+            border-radius: 6px;
+            cursor: pointer;
+            width: 100%;
+            font-size: 1rem;
+        }
+
+        .btn-secondary {
+            background: #ccc;
+            color: #333;
+            border: none;
+            padding: 10px;
+            border-radius: 6px;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 10px;
         }
 
         @media (max-width: 768px) {
@@ -116,39 +175,26 @@
 
 <body>
     <nav>
-        <div class="nav-brand">
-            <a href="index.html">Readera</a>
-        </div>
+        <div class="nav-brand"><a href="index.html">Readera</a></div>
         <div class="nav-links">
             <a href="index.html">Home</a>
             <a href="browse.html" style="font-weight: bold;">Browse Books</a>
         </div>
         <div class="nav-user">
             <a href="cart.html" class="cart-link">Cart (<span id="cart-count">0</span>)</a>
-            <a href="auth.html" class="btn btn-primary guest-only">Login</a>
-            <a href="library.html" class="user-only">My Library</a>
-            <a href="profile.html" class="user-only" id="nav-username">Profile</a>
-            <a href="admin.html" class="admin-only">Admin</a>
-            <a href="#" id="logout-btn" class="user-only">Logout</a>
+            <a href="auth.html" class="btn btn-primary">Login</a>
         </div>
     </nav>
 
     <div class="container">
-        <h1 class="section-title" id="page-title">All Books</h1>
+        <h1 class="section-title">All Books</h1>
 
         <div class="page-layout">
-            <!-- Filters Sidebar -->
             <aside class="sidebar">
                 <form id="filter-form">
-                    <div class="filter-group" id="search-group" style="display: none;">
-                        <h4>Search Results For</h4>
-                        <p id="search-term-display"
-                            style="font-weight: bold; color: var(--primary-color); word-break: break-all;"></p>
-                    </div>
-
                     <div class="filter-group">
                         <h4>Genre</h4>
-                        <select class="form-control" name="genre" id="filter-genre">
+                        <select id="filter-genre">
                             <option value="all">All Genres</option>
                             <option value="Fiction">Fiction</option>
                             <option value="Non-Fiction">Non-Fiction</option>
@@ -162,7 +208,7 @@
 
                     <div class="filter-group">
                         <h4>Sort By</h4>
-                        <select class="form-control" name="sort" id="filter-sort">
+                        <select id="filter-sort">
                             <option value="newest">Newest</option>
                             <option value="price_asc">Price: Low to High</option>
                             <option value="price_desc">Price: High to Low</option>
@@ -170,154 +216,63 @@
                         </select>
                     </div>
 
-                    <button type="submit" class="btn btn-primary" style="width: 100%;">Apply Filters</button>
-                    <button type="button" id="clear-filters" class="btn btn-secondary"
-                        style="width: 100%; margin-top: 10px;">Clear</button>
+                    <button type="submit" class="btn-primary">Apply Filters</button>
+                    <button type="button" id="clear-filters" class="btn-secondary">Clear</button>
                 </form>
             </aside>
 
-            <!-- Main Catalog -->
             <main class="main-content">
-                <div class="books-grid" id="books-grid"></div>
+                <div class="books-grid" id="books-grid">
+                    <div class="loader">Loading books...</div>
+                </div>
             </main>
         </div>
     </div>
 
-    <script src="js/api.js"></script>
     <script>
-        // Global variables
         let allBooks = [];
 
-        document.addEventListener('DOMContentLoaded', () => {
-            const urlParams = new URLSearchParams(window.location.search);
-            const searchQuery = urlParams.get('search');
+        // Update cart count
+        function updateCartCount() {
+            const cart = JSON.parse(localStorage.getItem('cart') || '[]');
+            const countEl = document.getElementById('cart-count');
+            if (countEl) countEl.textContent = cart.length;
+        }
 
-            if (searchQuery) {
-                document.getElementById('search-group').style.display = 'block';
-                document.getElementById('search-term-display').textContent = `"${searchQuery}"`;
-                document.getElementById('page-title').textContent = 'Search Results';
-                fetchSearch(searchQuery);
+        // Add to cart function
+        function addToCart(book, event) {
+            if (event) event.stopPropagation();
+            let cart = JSON.parse(localStorage.getItem('cart') || '[]');
+            if (!cart.find(item => item.id === book.id)) {
+                cart.push(book);
+                localStorage.setItem('cart', JSON.stringify(cart));
+                showToast('✅ Added to cart!', 'success');
+                updateCartCount();
             } else {
-                fetchBooks();
-            }
-
-            document.getElementById('filter-form').addEventListener('submit', (e) => {
-                e.preventDefault();
-                fetchBooks();
-            });
-
-            document.getElementById('clear-filters').addEventListener('click', () => {
-                document.getElementById('filter-genre').value = 'all';
-                document.getElementById('filter-sort').value = 'newest';
-                fetchBooks();
-            });
-
-            // Update cart count
-            updateCartCount();
-        });
-
-        // ✅ FIXED: Books from static JSON file, not API
-        async function fetchBooks() {
-            const booksGrid = document.getElementById('books-grid');
-            booksGrid.innerHTML = '<div class="loader"></div>';
-
-            try {
-                // ✅ Changed from /api/books to /books.json
-                const response = await fetch('/books.json');
-
-                if (!response.ok) {
-                    throw new Error(`HTTP ${response.status}`);
-                }
-
-                let books = await response.json();
-
-                // Ensure books is an array
-                if (!Array.isArray(books)) {
-                    books = [];
-                }
-
-                allBooks = books;
-
-                // Apply filters
-                let filteredBooks = [...allBooks];
-
-                // Genre filter
-                const genre = document.getElementById('filter-genre').value;
-                if (genre && genre !== 'all') {
-                    filteredBooks = filteredBooks.filter(book => book.genre === genre);
-                }
-
-                // Sort
-                const sort = document.getElementById('filter-sort').value;
-                if (sort === 'price_asc') {
-                    filteredBooks.sort((a, b) => (a.price || 0) - (b.price || 0));
-                } else if (sort === 'price_desc') {
-                    filteredBooks.sort((a, b) => (b.price || 0) - (a.price || 0));
-                } else if (sort === 'title_asc') {
-                    filteredBooks.sort((a, b) => (a.title || '').localeCompare(b.title || ''));
-                }
-
-                renderBooks(filteredBooks);
-
-            } catch (error) {
-                console.error('Error fetching books:', error);
-                booksGrid.innerHTML = '<p class="error">Error loading books. Please try again.</p>';
+                showToast('⚠️ Book already in cart!', 'error');
             }
         }
 
-        // ✅ FIXED: Search from static JSON
-        async function fetchSearch(query) {
-            const booksGrid = document.getElementById('books-grid');
-            booksGrid.innerHTML = '<div class="loader"></div>';
-
-            try {
-                // ✅ Changed from API to static JSON
-                const response = await fetch('/books.json');
-
-                if (!response.ok) {
-                    throw new Error(`HTTP ${response.status}`);
-                }
-
-                let books = await response.json();
-
-                if (!Array.isArray(books)) {
-                    books = [];
-                }
-
-                // Filter by search query
-                const filteredBooks = books.filter(book =>
-                    book.title.toLowerCase().includes(query.toLowerCase()) ||
-                    (book.author && book.author.toLowerCase().includes(query.toLowerCase()))
-                );
-
-                renderBooks(filteredBooks);
-
-            } catch (error) {
-                console.error('Error searching books:', error);
-                booksGrid.innerHTML = '<p class="error">Error searching books. Please try again.</p>';
-            }
+        // Toast notification
+        function showToast(message, type) {
+            const toast = document.createElement('div');
+            toast.textContent = message;
+            toast.style.cssText = `
+                position: fixed;
+                bottom: 20px;
+                right: 20px;
+                background: ${type === 'error' ? '#e74c3c' : '#27ae60'};
+                color: white;
+                padding: 12px 20px;
+                border-radius: 8px;
+                z-index: 1000;
+                animation: fadeInOut 2s ease;
+            `;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 2000);
         }
 
-        function renderBooks(books) {
-            const container = document.getElementById('books-grid');
-
-            if (!books || books.length === 0) {
-                container.innerHTML = '<p class="error">No books found matching your criteria.</p>';
-                return;
-            }
-
-            container.innerHTML = books.map(book => `
-                <a href="book.html?id=${book.id}" class="book-card">
-                    <img src="${book.cover_url || '/images/default-cover.jpg'}" alt="${book.title}" class="book-cover" onerror="this.src='/images/default-cover.jpg'">
-                    <div class="book-info">
-                        <h3 class="book-title">${escapeHtml(book.title)}</h3>
-                        <p class="book-author">${escapeHtml(book.author || 'Unknown')}</p>
-                        <p class="book-price">${book.is_free || book.price === 0 ? '<span class="free-badge">FREE</span>' : `₹${book.price}`}</p>
-                    </div>
-                </a>
-            `).join('');
-        }
-
+        // Escape HTML
         function escapeHtml(str) {
             if (!str) return '';
             return str.replace(/[&<>]/g, function (m) {
@@ -328,17 +283,84 @@
             });
         }
 
-        async function updateCartCount() {
+        // Render books grid
+        function renderBooks(books) {
+            const container = document.getElementById('books-grid');
+            if (!books || books.length === 0) {
+                container.innerHTML = '<p class="error">No books found.</p>';
+                return;
+            }
+
+            container.innerHTML = books.map(book => `
+                <div class="book-card">
+                    <a href="book.html?id=${book.id}">
+                        <img src="${book.cover_url || 'https://via.placeholder.com/220x260?text=Book+Cover'}" class="book-cover" onerror="this.src='https://via.placeholder.com/220x260?text=Book+Cover'">
+                        <div class="book-info">
+                            <h3 class="book-title">${escapeHtml(book.title)}</h3>
+                            <p class="book-author">${escapeHtml(book.author) || 'Unknown'}</p>
+                            <p class="book-price">${book.price === 0 ? '<span class="free-badge">FREE</span>' : `₹${book.price}`}</p>
+                        </div>
+                    </a>
+                    <button class="btn-add-cart" onclick="addToCart({id:${book.id}, title:'${escapeHtml(book.title)}', price:${book.price}}, event)">
+                        🛒 Add to Cart
+                    </button>
+                </div>
+            `).join('');
+        }
+
+        // Load books from JSON
+        async function loadBooks() {
+            const grid = document.getElementById('books-grid');
+            grid.innerHTML = '<div class="loader">Loading books...</div>';
+
             try {
-                const cart = JSON.parse(localStorage.getItem('cart') || '[]');
-                const cartCount = document.getElementById('cart-count');
-                if (cartCount) {
-                    cartCount.textContent = cart.length;
-                }
-            } catch (e) {
-                console.error('Error updating cart:', e);
+                const response = await fetch('/books.json');
+                if (!response.ok) throw new Error('Failed to load');
+                allBooks = await response.json();
+                applyFiltersAndSort();
+            } catch (error) {
+                grid.innerHTML = '<p class="error">Error loading books. Please refresh.</p>';
             }
         }
+
+        // Apply filters and sort
+        function applyFiltersAndSort() {
+            let filtered = [...allBooks];
+
+            const genre = document.getElementById('filter-genre').value;
+            if (genre !== 'all') {
+                filtered = filtered.filter(book => book.genre === genre);
+            }
+
+            const sort = document.getElementById('filter-sort').value;
+            if (sort === 'price_asc') {
+                filtered.sort((a, b) => (a.price || 0) - (b.price || 0));
+            } else if (sort === 'price_desc') {
+                filtered.sort((a, b) => (b.price || 0) - (a.price || 0));
+            } else if (sort === 'title_asc') {
+                filtered.sort((a, b) => (a.title || '').localeCompare(b.title || ''));
+            }
+
+            renderBooks(filtered);
+        }
+
+        // Event listeners
+        document.getElementById('filter-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            applyFiltersAndSort();
+        });
+
+        document.getElementById('clear-filters').addEventListener('click', () => {
+            document.getElementById('filter-genre').value = 'all';
+            document.getElementById('filter-sort').value = 'newest';
+            applyFiltersAndSort();
+        });
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            updateCartCount();
+            loadBooks();
+        });
     </script>
 </body>
 

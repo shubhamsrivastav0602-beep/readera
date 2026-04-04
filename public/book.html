@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Book Details - Readera</title>
     <link
-        href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;1,400&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap"
+        href="https://fonts.googleapis.com/css2?family=Lora:wght@400;500;600&family=Playfair+Display:wght@400;700&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="css/style.css">
     <style>
@@ -25,7 +25,6 @@
             height: 450px;
             object-fit: cover;
             border-radius: 8px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
         }
 
         .book-info-large {
@@ -35,7 +34,6 @@
         .book-title-large {
             font-size: 2rem;
             margin-bottom: 10px;
-            font-family: 'Playfair Display', serif;
         }
 
         .book-author-large {
@@ -54,13 +52,13 @@
         .book-description {
             line-height: 1.6;
             margin: 20px 0;
-            color: #333;
         }
 
         .btn-large {
             padding: 12px 30px;
             font-size: 1.1rem;
             margin-right: 15px;
+            cursor: pointer;
         }
 
         .error-message {
@@ -77,12 +75,13 @@
         @media (max-width: 768px) {
             .book-detail {
                 flex-direction: column;
+                align-items: center;
+                text-align: center;
             }
 
             .book-cover-large {
-                width: 100%;
-                max-width: 250px;
-                margin: 0 auto;
+                width: 200px;
+                height: 300px;
             }
         }
     </style>
@@ -90,99 +89,88 @@
 
 <body>
     <nav>
-        <div class="nav-brand">
-            <a href="index.html">Readera</a>
-        </div>
+        <div class="nav-brand"><a href="index.html">Readera</a></div>
         <div class="nav-links">
             <a href="index.html">Home</a>
             <a href="browse.html">Browse Books</a>
         </div>
         <div class="nav-user">
             <a href="cart.html" class="cart-link">Cart (<span id="cart-count">0</span>)</a>
-            <a href="auth.html" class="btn btn-primary guest-only">Login</a>
-            <a href="library.html" class="user-only">My Library</a>
-            <a href="profile.html" class="user-only" id="nav-username">Profile</a>
-            <a href="#" id="logout-btn" class="user-only">Logout</a>
+            <a href="auth.html" class="btn btn-primary">Login</a>
         </div>
     </nav>
 
     <div class="container">
         <div id="book-content">
-            <div class="loader">Loading book details...</div>
+            <div class="loader">Loading...</div>
         </div>
     </div>
 
-    <script src="js/api.js"></script>
     <script>
-        let currentBook = null;
+        // Update cart count
+        function updateCartCount() {
+            const cart = JSON.parse(localStorage.getItem('cart') || '[]');
+            const countEl = document.getElementById('cart-count');
+            if (countEl) countEl.textContent = cart.length;
+        }
 
-        document.addEventListener('DOMContentLoaded', () => {
-            updateCartCount();
-            loadBookDetails();
-        });
+        // Add to cart function
+        function addToCart(book) {
+            let cart = JSON.parse(localStorage.getItem('cart') || '[]');
+            if (!cart.find(item => item.id === book.id)) {
+                cart.push(book);
+                localStorage.setItem('cart', JSON.stringify(cart));
+                alert('✅ Added to cart!');
+                updateCartCount();
+            } else {
+                alert('⚠️ Book already in cart!');
+            }
+        }
 
-        async function loadBookDetails() {
+        // Load book details from books.json
+        async function loadBook() {
             const urlParams = new URLSearchParams(window.location.search);
-            const bookId = urlParams.get('id');
+            const bookId = parseInt(urlParams.get('id'));
 
             if (!bookId) {
-                document.getElementById('book-content').innerHTML = '<div class="error-message">No book ID provided.</div>';
+                document.getElementById('book-content').innerHTML = '<div class="error-message">No book ID provided</div>';
                 return;
             }
 
             try {
-                const response = await fetch(`/api/books/${bookId}`);
+                const response = await fetch('/books.json');
+                const books = await response.json();
+                const book = books.find(b => b.id == bookId);
 
-                if (!response.ok) {
-                    throw new Error(`HTTP ${response.status}`);
+                if (!book) {
+                    document.getElementById('book-content').innerHTML = '<div class="error-message">Book not found</div>';
+                    return;
                 }
 
-                const book = await response.json();
-                currentBook = book;
-                renderBookDetails(book);
+                const coverUrl = book.cover_url || 'https://via.placeholder.com/300x450?text=No+Cover';
+                const price = book.price === 0 ? 'FREE' : `₹${book.price}`;
 
-            } catch (error) {
-                console.error('Error loading book:', error);
                 document.getElementById('book-content').innerHTML = `
-                    <div class="error-message">
-                        <h2>Error Loading Book</h2>
-                        <p>${error.message}</p>
-                        <a href="browse.html" class="btn btn-primary">Browse Books</a>
+                    <div class="book-detail">
+                        <img src="${coverUrl}" class="book-cover-large" onerror="this.src='https://via.placeholder.com/300x450?text=No+Cover'">
+                        <div class="book-info-large">
+                            <h1 class="book-title-large">${escapeHtml(book.title)}</h1>
+                            <p class="book-author-large">by ${escapeHtml(book.author) || 'Unknown'}</p>
+                            <div class="book-price-large">${price}</div>
+                            <p class="book-description">${escapeHtml(book.description) || 'No description available.'}</p>
+                            <button class="btn btn-primary btn-large" onclick="addToCart({id:${book.id}, title:'${escapeHtml(book.title)}', price:${book.price}})">🛒 Add to Cart (${price})</button>
+                            <button class="btn btn-secondary btn-large" onclick="buyNow({id:${book.id}, title:'${escapeHtml(book.title)}', price:${book.price}})">💳 Buy Now</button>
+                        </div>
                     </div>
                 `;
+            } catch (error) {
+                document.getElementById('book-content').innerHTML = '<div class="error-message">Error loading book</div>';
             }
         }
 
-        function renderBookDetails(book) {
-            if (!book) {
-                document.getElementById('book-content').innerHTML = '<div class="error-message">Book not found.</div>';
-                return;
-            }
-
-            const coverUrl = book.cover_url || '/images/default-cover.jpg';
-            const price = book.is_free || book.price === 0 ? 'FREE' : `₹${book.price || 0}`;
-            const isFree = book.is_free || book.price === 0;
-
-            const html = `
-                <div class="book-detail">
-                    <img src="${coverUrl}" alt="${book.title}" class="book-cover-large" onerror="this.src='/images/default-cover.jpg'">
-                    <div class="book-info-large">
-                        <h1 class="book-title-large">${escapeHtml(book.title || 'Untitled')}</h1>
-                        <p class="book-author-large">by ${escapeHtml(book.author || 'Unknown')}</p>
-                        <div class="book-price-large">${price}</div>
-                        <p class="book-description">${escapeHtml(book.description || 'No description available.')}</p>
-                        <div class="book-actions">
-                            ${isFree ?
-                    `<button class="btn btn-primary btn-large" onclick="downloadBook(${book.id})">Download Now</button>` :
-                    `<button class="btn btn-primary btn-large" onclick="buyNow(${book.id}, '${book.title}', ${book.price})">Buy Now (${price})</button>`
-                }
-                            <button class="btn btn-secondary btn-large" onclick="addToWishlist(${book.id})">❤️ Add to Wishlist</button>
-                        </div>
-                    </div>
-                </div>
-            `;
-
-            document.getElementById('book-content').innerHTML = html;
+        function buyNow(book) {
+            addToCart(book);
+            window.location.href = 'cart.html';
         }
 
         function escapeHtml(str) {
@@ -195,70 +183,10 @@
             });
         }
 
-        function buyNow(bookId, title, price) {
-            // Get existing cart
-            let cart = JSON.parse(localStorage.getItem('cart') || '[]');
-
-            // Check if already in cart
-            if (!cart.find(item => item.id === bookId)) {
-                cart.push({ id: bookId, title: title, price: price });
-                localStorage.setItem('cart', JSON.stringify(cart));
-                updateCartCount();
-                alert(`${title} added to cart!`);
-            } else {
-                alert(`${title} is already in your cart.`);
-            }
-
-            // Redirect to cart page
-            window.location.href = 'cart.html';
-        }
-
-        async function addToWishlist(bookId) {
-            const token = localStorage.getItem('token');
-
-            if (!token) {
-                alert('Please login first to add to wishlist');
-                window.location.href = 'auth.html';
-                return;
-            }
-
-            try {
-                const response = await fetch('/api/wishlist/add', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`
-                    },
-                    body: JSON.stringify({ bookId: bookId })
-                });
-
-                if (response.ok) {
-                    alert('Added to wishlist!');
-                } else {
-                    const error = await response.json();
-                    alert(error.error || 'Failed to add to wishlist');
-                }
-            } catch (error) {
-                console.error('Error:', error);
-                alert('Failed to add to wishlist');
-            }
-        }
-
-        function downloadBook(bookId) {
-            alert('Download feature coming soon!');
-        }
-
-        async function updateCartCount() {
-            try {
-                const cart = JSON.parse(localStorage.getItem('cart') || '[]');
-                const cartCount = document.getElementById('cart-count');
-                if (cartCount) {
-                    cartCount.textContent = cart.length;
-                }
-            } catch (e) {
-                console.error('Error updating cart:', e);
-            }
-        }
+        document.addEventListener('DOMContentLoaded', () => {
+            updateCartCount();
+            loadBook();
+        });
     </script>
 </body>
 
