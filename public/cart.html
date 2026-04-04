@@ -140,7 +140,6 @@
 
         <div id="empty-cart-msg" style="display:none; text-align:center; padding: 40px;">
             <h2>Your cart is empty.</h2>
-            <br>
             <a href="browse.html" class="btn btn-primary">Browse Books</a>
         </div>
 
@@ -162,7 +161,10 @@
     </div>
 
     <script>
-        // ========== CART SERVICE ==========
+        // ✅ Razorpay Test Key (Apni key daalo)
+        const RAZORPAY_KEY_ID = 'rzp_test_SZWU44PkOGGlI2';
+
+        // Cart functions
         function getCart() {
             return JSON.parse(localStorage.getItem('cart') || '[]');
         }
@@ -170,24 +172,6 @@
         function saveCart(cart) {
             localStorage.setItem('cart', JSON.stringify(cart));
             updateCartCount();
-        }
-
-        function addToCart(book) {
-            let cart = getCart();
-            if (!cart.find(item => item.id === book.id)) {
-                cart.push(book);
-                saveCart(cart);
-                showToast('✅ Added to cart!');
-            } else {
-                showToast('⚠️ Book already in cart', 'error');
-            }
-        }
-
-        function removeFromCart(bookId) {
-            let cart = getCart().filter(item => item.id !== bookId);
-            saveCart(cart);
-            renderCart();
-            showToast('Removed from cart');
         }
 
         function clearCart() {
@@ -199,6 +183,13 @@
             const cart = getCart();
             const countEl = document.getElementById('cart-count');
             if (countEl) countEl.textContent = cart.length;
+        }
+
+        function removeFromCart(bookId) {
+            let cart = getCart().filter(item => item.id !== bookId);
+            saveCart(cart);
+            renderCart();
+            showToast('Removed from cart');
         }
 
         function showToast(message, type = 'success') {
@@ -218,82 +209,6 @@
             setTimeout(() => toast.remove(), 2000);
         }
 
-        // ========== RAZORPAY PAYMENT ==========
-        // ⚠️ IMPORTANT: Ye keys Vercel environment variables se aani chahiye
-        // Abhi ke liye test keys use kar rahe hain
-        const RAZORPAY_KEY_ID = 'rzp_test_YourTestKeyIdHere';  // ✅ Apni test key daalo
-
-        async function initiatePayment(amount, bookIds, books) {
-            // Check if user is logged in
-            const token = localStorage.getItem('token');
-            if (!token) {
-                showToast('Please login first', 'error');
-                window.location.href = 'auth.html?redirect=cart.html';
-                return;
-            }
-
-            showToast('Creating order...', 'success');
-
-            try {
-                // Create order via backend API
-                const response = await fetch('/api/create-order', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ amount, bookIds })
-                });
-
-                const order = await response.json();
-
-                if (!order.id) {
-                    throw new Error('Order creation failed');
-                }
-
-                const options = {
-                    key: RAZORPAY_KEY_ID,
-                    amount: order.amount,
-                    currency: order.currency,
-                    name: 'Readera',
-                    description: `Purchase of ${books.length} book(s)`,
-                    order_id: order.id,
-                    handler: async function (response) {
-                        // Verify payment
-                        const verifyRes = await fetch('/api/verify-payment', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({
-                                razorpay_order_id: response.razorpay_order_id,
-                                razorpay_payment_id: response.razorpay_payment_id,
-                                razorpay_signature: response.razorpay_signature,
-                                bookIds: bookIds
-                            })
-                        });
-
-                        const result = await verifyRes.json();
-                        if (result.success) {
-                            showToast('✅ Payment successful! Books added to your library.');
-                            clearCart();
-                            setTimeout(() => window.location.href = 'library.html', 2000);
-                        } else {
-                            showToast('Payment verification failed', 'error');
-                        }
-                    },
-                    prefill: {
-                        name: localStorage.getItem('userName') || 'Reader',
-                        email: localStorage.getItem('userEmail') || 'reader@example.com'
-                    },
-                    theme: { color: '#8B4513' }
-                };
-
-                const razorpay = new Razorpay(options);
-                razorpay.open();
-
-            } catch (error) {
-                console.error('Payment error:', error);
-                showToast('Payment failed. Please try again.', 'error');
-            }
-        }
-
-        // ========== RENDER CART ==========
         function renderCart() {
             const cart = getCart();
             const layout = document.getElementById('cart-layout');
@@ -311,7 +226,7 @@
 
             let total = 0;
             container.innerHTML = cart.map(item => {
-                total += item.price;
+                total += (item.price || 0);
                 return `
                 <div class="cart-item">
                     <img src="${item.cover_url || 'https://via.placeholder.com/80x120?text=Book'}" class="ci-img" onerror="this.src='https://via.placeholder.com/80x120?text=Book'">
@@ -339,7 +254,7 @@
             });
         }
 
-        // ========== CHECKOUT ==========
+        // ✅ Razorpay Checkout Function
         async function handleCheckout() {
             const cart = getCart();
             if (cart.length === 0) {
@@ -347,17 +262,89 @@
                 return;
             }
 
-            const amount = cart.reduce((sum, item) => sum + item.price, 0);
+            // Check if user is logged in
+            const token = localStorage.getItem('token');
+            if (!token) {
+                showToast('Please login first', 'error');
+                window.location.href = 'auth.html?redirect=cart.html';
+                return;
+            }
+
+            const amount = cart.reduce((sum, item) => sum + (item.price || 0), 0);
             const bookIds = cart.map(item => item.id);
 
-            await initiatePayment(amount, bookIds, cart);
+            showToast('Creating order...', 'success');
+
+            try {
+                // Create order
+                const orderRes = await fetch('/api/create-order', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ amount, bookIds })
+                });
+
+                const order = await orderRes.json();
+
+                if (!order.id) throw new Error('Order creation failed');
+
+                const options = {
+                    key: RAZORPAY_KEY_ID,
+                    amount: order.amount,
+                    currency: order.currency,
+                    name: 'Readera',
+                    description: `Purchase of ${cart.length} book(s)`,
+                    order_id: order.id,
+                    handler: async function (response) {
+                        // Verify payment
+                        const verifyRes = await fetch('/api/verify-payment', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                razorpay_order_id: response.razorpay_order_id,
+                                razorpay_payment_id: response.razorpay_payment_id,
+                                razorpay_signature: response.razorpay_signature,
+                                bookIds: bookIds
+                            })
+                        });
+
+                        const result = await verifyRes.json();
+
+                        if (result.success) {
+                            // Add to library
+                            let library = JSON.parse(localStorage.getItem('library') || '[]');
+                            cart.forEach(book => {
+                                if (!library.find(b => b.id === book.id)) {
+                                    library.push(book);
+                                }
+                            });
+                            localStorage.setItem('library', JSON.stringify(library));
+
+                            clearCart();
+                            showToast('✅ Payment successful! Books added to your library.');
+                            setTimeout(() => window.location.href = 'library.html', 2000);
+                        } else {
+                            showToast('Payment verification failed', 'error');
+                        }
+                    },
+                    prefill: {
+                        name: localStorage.getItem('userName') || 'Reader',
+                        email: localStorage.getItem('userEmail') || 'reader@example.com'
+                    },
+                    theme: { color: '#8B4513' }
+                };
+
+                const razorpay = new Razorpay(options);
+                razorpay.open();
+
+            } catch (error) {
+                console.error('Payment error:', error);
+                showToast('Payment failed. Please try again.', 'error');
+            }
         }
 
-        // ========== INITIALIZE ==========
         document.addEventListener('DOMContentLoaded', () => {
             updateCartCount();
             renderCart();
-
             document.getElementById('checkout-btn').addEventListener('click', handleCheckout);
         });
     </script>
