@@ -54,6 +54,7 @@
 
         .ci-author {
             color: #666;
+            font-size: 0.9rem;
         }
 
         .ci-price {
@@ -98,12 +99,12 @@
             width: 100%;
             margin-top: 20px;
             padding: 15px;
-            font-size: 1.1rem;
             background: #8B4513;
             color: white;
             border: none;
             border-radius: 8px;
             cursor: pointer;
+            font-size: 1.1rem;
         }
 
         .checkout-btn:hover {
@@ -161,10 +162,10 @@
     </div>
 
     <script>
-        // ✅ Razorpay Test Key (Apni key daalo)
-        const RAZORPAY_KEY_ID = 'rzp_test_SZWU44PkOGGlI2';
+        // ✅ Razorpay Test Key
+        const RAZORPAY_KEY_ID = 'rzp_test_SZWU44Pk0GG1I2';
 
-        // Cart functions
+        // ✅ Cart Functions
         function getCart() {
             return JSON.parse(localStorage.getItem('cart') || '[]');
         }
@@ -189,7 +190,6 @@
             let cart = getCart().filter(item => item.id !== bookId);
             saveCart(cart);
             renderCart();
-            showToast('Removed from cart');
         }
 
         function showToast(message, type = 'success') {
@@ -254,7 +254,7 @@
             });
         }
 
-        // ✅ Razorpay Checkout Function
+        // ✅ Razorpay Checkout
         async function handleCheckout() {
             const cart = getCart();
             if (cart.length === 0) {
@@ -262,7 +262,6 @@
                 return;
             }
 
-            // Check if user is logged in
             const token = localStorage.getItem('token');
             if (!token) {
                 showToast('Please login first', 'error');
@@ -276,7 +275,6 @@
             showToast('Creating order...', 'success');
 
             try {
-                // Create order
                 const orderRes = await fetch('/api/create-order', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -295,7 +293,6 @@
                     description: `Purchase of ${cart.length} book(s)`,
                     order_id: order.id,
                     handler: async function (response) {
-                        // Verify payment
                         const verifyRes = await fetch('/api/verify-payment', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
@@ -310,7 +307,6 @@
                         const result = await verifyRes.json();
 
                         if (result.success) {
-                            // Add to library
                             let library = JSON.parse(localStorage.getItem('library') || '[]');
                             cart.forEach(book => {
                                 if (!library.find(b => b.id === book.id)) {
@@ -318,7 +314,6 @@
                                 }
                             });
                             localStorage.setItem('library', JSON.stringify(library));
-
                             clearCart();
                             showToast('✅ Payment successful! Books added to your library.');
                             setTimeout(() => window.location.href = 'library.html', 2000);
@@ -345,7 +340,12 @@
         document.addEventListener('DOMContentLoaded', () => {
             updateCartCount();
             renderCart();
-            document.getElementById('checkout-btn').addEventListener('click', handleCheckout);
+            const checkoutBtn = document.getElementById('checkout-btn');
+            if (checkoutBtn) {
+                checkoutBtn.addEventListener('click', handleCheckout);
+            } else {
+                console.error('Checkout button not found!');
+            }
         });
     </script>
 </body>
