@@ -69,6 +69,7 @@
             border: none;
             cursor: pointer;
             margin-top: 10px;
+            padding: 0;
         }
 
         .cart-summary {
@@ -125,7 +126,9 @@
 
 <body>
     <nav>
-        <div class="nav-brand"><a href="index.html">Readera</a></div>
+        <div class="nav-brand">
+            <a href="index.html">Readera</a>
+        </div>
         <div class="nav-links">
             <a href="index.html">Home</a>
             <a href="browse.html">Browse Books</a>
@@ -139,12 +142,12 @@
     <div class="container">
         <h1 class="section-title">Shopping Cart</h1>
 
-        <div id="empty-cart-msg" style="display:none; text-align:center; padding: 40px;">
+        <div id="empty-cart-msg" style="display: none; text-align: center; padding: 40px;">
             <h2>Your cart is empty.</h2>
             <a href="browse.html" class="btn btn-primary">Browse Books</a>
         </div>
 
-        <div class="cart-layout" id="cart-layout">
+        <div class="cart-layout" id="cart-layout" style="display: none;">
             <div class="cart-items" id="cart-items-container"></div>
             <div class="cart-summary">
                 <h3>Order Summary</h3>
@@ -162,12 +165,16 @@
     </div>
 
     <script>
-        // ✅ Razorpay Test Key
+        // Razorpay Test Key
         const RAZORPAY_KEY_ID = 'rzp_test_SZWU44Pk0GG1I2';
 
-        // ✅ Cart Functions
+        // ========== CART FUNCTIONS ==========
         function getCart() {
-            return JSON.parse(localStorage.getItem('cart') || '[]');
+            const cart = localStorage.getItem('cart');
+            if (cart) {
+                return JSON.parse(cart);
+            }
+            return [];
         }
 
         function saveCart(cart) {
@@ -183,16 +190,19 @@
         function updateCartCount() {
             const cart = getCart();
             const countEl = document.getElementById('cart-count');
-            if (countEl) countEl.textContent = cart.length;
+            if (countEl) {
+                countEl.textContent = cart.length;
+            }
         }
 
         function removeFromCart(bookId) {
-            let cart = getCart().filter(item => item.id !== bookId);
+            let cart = getCart();
+            cart = cart.filter(item => item.id !== bookId);
             saveCart(cart);
             renderCart();
         }
 
-        function showToast(message, type = 'success') {
+        function showToast(message, type) {
             const toast = document.createElement('div');
             toast.textContent = message;
             toast.style.cssText = `
@@ -206,7 +216,9 @@
                 z-index: 1000;
             `;
             document.body.appendChild(toast);
-            setTimeout(() => toast.remove(), 2000);
+            setTimeout(() => {
+                toast.remove();
+            }, 3000);
         }
 
         function renderCart() {
@@ -225,21 +237,25 @@
             emptyMsg.style.display = 'none';
 
             let total = 0;
-            container.innerHTML = cart.map(item => {
-                total += (item.price || 0);
-                return `
-                <div class="cart-item">
-                    <img src="${item.cover_url || 'https://via.placeholder.com/80x120?text=Book'}" class="ci-img" onerror="this.src='https://via.placeholder.com/80x120?text=Book'">
-                    <div class="ci-details">
-                        <div class="ci-title">${escapeHtml(item.title)}</div>
-                        <div class="ci-author">${escapeHtml(item.author) || 'Unknown'}</div>
-                        <button class="remove-btn" onclick="removeFromCart(${item.id})">Remove</button>
-                    </div>
-                    <div class="ci-price">₹${item.price}</div>
-                </div>
-                `;
-            }).join('');
+            let html = '';
 
+            for (let i = 0; i < cart.length; i++) {
+                const item = cart[i];
+                total = total + (item.price || 0);
+                html = html + `
+                    <div class="cart-item">
+                        <img src="${item.cover_url || 'https://via.placeholder.com/80x120?text=Book'}" class="ci-img" onerror="this.src='https://via.placeholder.com/80x120?text=Book'">
+                        <div class="ci-details">
+                            <div class="ci-title">${escapeHtml(item.title)}</div>
+                            <div class="ci-author">${escapeHtml(item.author) || 'Unknown'}</div>
+                            <button class="remove-btn" onclick="removeFromCart(${item.id})">Remove</button>
+                        </div>
+                        <div class="ci-price">₹${item.price}</div>
+                    </div>
+                `;
+            }
+
+            container.innerHTML = html;
             document.getElementById('subtotal').innerHTML = `₹${total}`;
             document.getElementById('total-price').innerHTML = `₹${total}`;
         }
@@ -254,9 +270,10 @@
             });
         }
 
-        // ✅ Razorpay Checkout
+        // ========== RAZORPAY CHECKOUT ==========
         async function handleCheckout() {
             const cart = getCart();
+
             if (cart.length === 0) {
                 showToast('Cart is empty', 'error');
                 return;
@@ -265,37 +282,53 @@
             const token = localStorage.getItem('token');
             if (!token) {
                 showToast('Please login first', 'error');
-                window.location.href = 'auth.html?redirect=cart.html';
+                window.location.href = 'auth.html';
                 return;
             }
 
-            const amount = cart.reduce((sum, item) => sum + (item.price || 0), 0);
-            const bookIds = cart.map(item => item.id);
+            let amount = 0;
+            for (let i = 0; i < cart.length; i++) {
+                amount = amount + (cart[i].price || 0);
+            }
+
+            const bookIds = [];
+            for (let i = 0; i < cart.length; i++) {
+                bookIds.push(cart[i].id);
+            }
 
             showToast('Creating order...', 'success');
 
             try {
                 const orderRes = await fetch('/api/create-order', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ amount, bookIds })
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        amount: amount,
+                        bookIds: bookIds
+                    })
                 });
 
                 const order = await orderRes.json();
 
-                if (!order.id) throw new Error('Order creation failed');
+                if (!order.id) {
+                    throw new Error('Order creation failed');
+                }
 
                 const options = {
                     key: RAZORPAY_KEY_ID,
                     amount: order.amount,
                     currency: order.currency,
                     name: 'Readera',
-                    description: `Purchase of ${cart.length} book(s)`,
+                    description: 'Purchase of ' + cart.length + ' book(s)',
                     order_id: order.id,
                     handler: async function (response) {
                         const verifyRes = await fetch('/api/verify-payment', {
                             method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
                             body: JSON.stringify({
                                 razorpay_order_id: response.razorpay_order_id,
                                 razorpay_payment_id: response.razorpay_payment_id,
@@ -307,16 +340,33 @@
                         const result = await verifyRes.json();
 
                         if (result.success) {
-                            let library = JSON.parse(localStorage.getItem('library') || '[]');
-                            cart.forEach(book => {
-                                if (!library.find(b => b.id === book.id)) {
+                            let library = localStorage.getItem('library');
+                            if (library) {
+                                library = JSON.parse(library);
+                            } else {
+                                library = [];
+                            }
+
+                            for (let i = 0; i < cart.length; i++) {
+                                const book = cart[i];
+                                let exists = false;
+                                for (let j = 0; j < library.length; j++) {
+                                    if (library[j].id === book.id) {
+                                        exists = true;
+                                        break;
+                                    }
+                                }
+                                if (!exists) {
                                     library.push(book);
                                 }
-                            });
+                            }
+
                             localStorage.setItem('library', JSON.stringify(library));
                             clearCart();
-                            showToast('✅ Payment successful! Books added to your library.');
-                            setTimeout(() => window.location.href = 'library.html', 2000);
+                            showToast('✅ Payment successful! Books added to your library.', 'success');
+                            setTimeout(function () {
+                                window.location.href = 'library.html';
+                            }, 2000);
                         } else {
                             showToast('Payment verification failed', 'error');
                         }
@@ -325,7 +375,9 @@
                         name: localStorage.getItem('userName') || 'Reader',
                         email: localStorage.getItem('userEmail') || 'reader@example.com'
                     },
-                    theme: { color: '#8B4513' }
+                    theme: {
+                        color: '#8B4513'
+                    }
                 };
 
                 const razorpay = new Razorpay(options);
@@ -337,14 +389,14 @@
             }
         }
 
-        document.addEventListener('DOMContentLoaded', () => {
+        // ========== INITIALIZE ==========
+        document.addEventListener('DOMContentLoaded', function () {
             updateCartCount();
             renderCart();
+
             const checkoutBtn = document.getElementById('checkout-btn');
             if (checkoutBtn) {
                 checkoutBtn.addEventListener('click', handleCheckout);
-            } else {
-                console.error('Checkout button not found!');
             }
         });
     </script>
