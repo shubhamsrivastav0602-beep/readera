@@ -1,160 +1,557 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Profile - Readera</title>
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;1,400&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+    <title>My account — Readera</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="css/style.css">
     <style>
-        .profile-container {
-            max-width: 800px;
-            margin: 40px auto;
-            background: var(--white);
-            padding: 40px;
-            border-radius: var(--border-radius);
-            box-shadow: var(--shadow);
+        body.account-body {
+            font-family: 'Inter', system-ui, sans-serif;
+            background: #f1f5f9;
+            min-height: 100vh;
         }
-        .profile-header {
+
+        .acct-nav {
+            background: #fff;
+            border-bottom: 1px solid #e2e8f0;
+            padding: 0.75rem 1.25rem;
             display: flex;
+            flex-wrap: wrap;
             align-items: center;
-            gap: 30px;
-            margin-bottom: 40px;
-            padding-bottom: 30px;
-            border-bottom: 1px solid #eee;
+            justify-content: space-between;
+            gap: 0.75rem;
         }
-        .profile-avatar {
-            width: 100px;
-            height: 100px;
-            background: var(--secondary-color);
-            border-radius: 50%;
+
+        .acct-nav a.brand {
+            font-weight: 700;
+            font-size: 1.2rem;
+            color: #0a2540;
+            text-decoration: none;
+        }
+
+        .acct-nav-links {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .acct-nav-links a {
+            color: #475569;
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .acct-nav-links a:hover {
+            color: #8B4513;
+        }
+
+        .acct-wrap {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 1.5rem 1.25rem 3rem;
+        }
+
+        .acct-hero {
+            background: linear-gradient(135deg, #0a2540 0%, #1e3a5f 100%);
+            color: #fff;
+            border-radius: 16px;
+            padding: 1.75rem 1.5rem;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 1.25rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 12px 32px rgba(10, 37, 64, 0.25);
+        }
+
+        .acct-avatar {
+            width: 72px;
+            height: 72px;
+            border-radius: 16px;
+            background: rgba(255, 255, 255, 0.15);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 3rem;
-            color: var(--primary-color);
-            font-family: 'Playfair Display', serif;
+            font-size: 1.75rem;
+            font-weight: 700;
         }
-        .order-history {
-            margin-top: 40px;
+
+        .acct-hero h1 {
+            font-size: 1.35rem;
+            margin: 0 0 0.25rem;
         }
+
+        .acct-hero .meta {
+            font-size: 0.88rem;
+            opacity: 0.9;
+            line-height: 1.5;
+        }
+
+        .acct-hero .meta span {
+            display: inline-block;
+            margin-right: 1rem;
+        }
+
+        .acct-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.25rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .acct-card {
+            background: #fff;
+            border-radius: 14px;
+            border: 1px solid #e2e8f0;
+            padding: 1.25rem 1.35rem;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+        }
+
+        .acct-card h2 {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: #64748b;
+            margin: 0 0 1rem;
+        }
+
+        .acct-dl {
+            margin: 0;
+            font-size: 0.92rem;
+        }
+
+        .acct-dl dt {
+            color: #94a3b8;
+            font-size: 0.75rem;
+            margin-top: 0.65rem;
+        }
+
+        .acct-dl dt:first-child {
+            margin-top: 0;
+        }
+
+        .acct-dl dd {
+            margin: 0.15rem 0 0;
+            color: #0f172a;
+            font-weight: 500;
+        }
+
+        .security-tip {
+            font-size: 0.88rem;
+            color: #475569;
+            line-height: 1.55;
+            margin: 0;
+        }
+
+        .security-tip i {
+            color: #8B4513;
+            margin-right: 0.35rem;
+        }
+
+        .section-head {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+        }
+
+        .section-head h2 {
+            font-size: 1.15rem;
+            color: #0f172a;
+            margin: 0;
+        }
+
+        .section-head a {
+            font-size: 0.88rem;
+            font-weight: 600;
+            color: #8B4513;
+            text-decoration: none;
+        }
+
+        .books-grid-acct {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+
+        .book-tile {
+            background: #fff;
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+            overflow: hidden;
+            transition: box-shadow 0.2s, transform 0.15s;
+        }
+
+        .book-tile:hover {
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+            transform: translateY(-2px);
+        }
+
+        .book-tile img {
+            width: 100%;
+            height: 140px;
+            object-fit: cover;
+            background: #f1f5f9;
+        }
+
+        .book-tile .bd {
+            padding: 0.75rem 0.85rem 1rem;
+        }
+
+        .book-tile .t {
+            font-weight: 600;
+            font-size: 0.88rem;
+            color: #0f172a;
+            line-height: 1.35;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .book-tile .a {
+            font-size: 0.78rem;
+            color: #64748b;
+            margin-top: 0.25rem;
+        }
+
+        .book-tile .actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.4rem;
+            margin-top: 0.65rem;
+        }
+
+        .book-tile .actions a {
+            font-size: 0.72rem;
+            font-weight: 600;
+            padding: 0.35rem 0.55rem;
+            border-radius: 6px;
+            text-decoration: none;
+        }
+
+        .book-tile .actions a.primary {
+            background: #8B4513;
+            color: #fff;
+        }
+
+        .book-tile .actions a.secondary {
+            background: #f1f5f9;
+            color: #334155;
+        }
+
+        .empty-hint {
+            color: #64748b;
+            font-size: 0.92rem;
+            line-height: 1.55;
+        }
+
         .order-table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 20px;
+            font-size: 0.88rem;
+            background: #fff;
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid #e2e8f0;
         }
-        .order-table th, .order-table td {
+
+        .order-table th,
+        .order-table td {
             text-align: left;
-            padding: 15px;
-            border-bottom: 1px solid #eee;
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid #e2e8f0;
         }
+
         .order-table th {
-            background: #f8f9fa;
+            background: #f8fafc;
+            color: #64748b;
+            font-weight: 600;
+            font-size: 0.72rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .order-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 0.2rem 0.5rem;
+            border-radius: 6px;
+            font-size: 0.72rem;
+            font-weight: 600;
+        }
+
+        .badge-paid {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .badge-other {
+            background: #e2e8f0;
+            color: #475569;
+        }
+
+        .load-err {
+            color: #b91c1c;
+            font-size: 0.88rem;
         }
     </style>
 </head>
-<body>
-    <nav>
-        <div class="nav-brand">
-            <a href="index.html">Readera</a>
-        </div>
-        <div class="nav-links">
-            <a href="index.html">Home</a>
-            <a href="browse.html">Browse Books</a>
-        </div>
-        <div class="nav-user">
-            <!-- Nav updates dynamically via api.js -->
-            <a href="cart.html" class="cart-link">Cart (<span id="cart-count">0</span>)</a>
-            <a href="auth.html" class="btn btn-primary guest-only">Login</a>
-            
-            <!-- Authenticated Links -->
-            <a href="library.html" class="user-only">My Library</a>
-            <a href="profile.html" class="user-only" id="nav-username">Profile</a>
-            <a href="#" id="logout-btn" class="user-only">Logout</a>
-        </div>
-    </nav>
 
-    <div class="loader" id="global-loader"></div>
+<body class="account-body">
+    <header class="acct-nav">
+        <a class="brand" href="index.html">Readera</a>
+        <nav class="acct-nav-links">
+            <a href="browse.html">Browse</a>
+            <a href="library.html">Library</a>
+            <a href="cart.html">Cart</a>
+            <a href="auth.html" class="guest-only">Log in</a>
+            <a href="#" id="logout-btn" class="user-only">Log out</a>
+        </nav>
+    </header>
 
-    <div class="container">
-        <div class="profile-container">
-            <div class="profile-header">
-                <div class="profile-avatar" id="profile-initials">R</div>
-                <div>
-                    <h2 id="profile-name">User Name</h2>
-                    <p id="profile-email">user@example.com</p>
+    <main class="acct-wrap">
+        <section class="acct-hero">
+            <div class="acct-avatar" id="hero-initial">?</div>
+            <div>
+                <h1 id="hero-name">Loading…</h1>
+                <div class="meta">
+                    <span id="hero-email"></span>
+                    <span id="hero-phone"></span>
+                    <span id="hero-since"></span>
                 </div>
             </div>
+        </section>
 
-            <div class="order-history">
-                <h3>Order History</h3>
-                <div id="order-history-container">
-                    <!-- Orders will be injected here via JS -->
-                    <p>Loading your orders...</p>
-                </div>
+        <div class="acct-grid">
+            <div class="acct-card">
+                <h2>Account details</h2>
+                <dl class="acct-dl" id="detail-dl">
+                    <dt>Email</dt>
+                    <dd id="d-email">—</dd>
+                    <dt>Mobile</dt>
+                    <dd id="d-phone">—</dd>
+                    <dt>User ID</dt>
+                    <dd id="d-id">—</dd>
+                </dl>
+            </div>
+            <div class="acct-card">
+                <h2>Security</h2>
+                <p class="security-tip"><i class="fas fa-shield-halved"></i> Your password is stored encrypted (bcrypt).
+                    Never share your login. Use a unique password for Readera.</p>
+                <p class="security-tip" style="margin-top:0.75rem;"><i class="fas fa-clock"></i> Sessions expire after 7
+                    days. You can log out anytime from this page.</p>
             </div>
         </div>
-    </div>
 
-    <!-- Scripts -->
+        <section class="acct-card" style="margin-bottom:1.5rem;">
+            <div class="section-head">
+                <h2><i class="fas fa-download" style="color:#8B4513;"></i> Your books &amp; downloads</h2>
+                <a href="browse.html">Browse more →</a>
+            </div>
+            <p class="empty-hint" style="margin-bottom:1rem;">Titles linked to your account (server) and purchases saved
+                on this device appear here. Open a book to read or download the edition in the reader.</p>
+            <div id="books-container">
+                <p class="empty-hint">Loading your library…</p>
+            </div>
+        </section>
+
+        <section class="acct-card">
+            <div class="section-head">
+                <h2><i class="fas fa-receipt" style="color:#8B4513;"></i> Order history</h2>
+            </div>
+            <div id="orders-container">
+                <p class="empty-hint">Loading orders…</p>
+            </div>
+        </section>
+    </main>
+
     <script src="js/api.js"></script>
     <script>
-        document.addEventListener('DOMContentLoaded', async () => {
-             if (!AuthService.isAuthenticated()) {
-                window.location.href = 'auth.html';
-                return;
-            }
-
-            const user = AuthService.getUser();
-            if (user) {
-                document.getElementById('profile-name').textContent = user.name;
-                document.getElementById('profile-email').textContent = user.email;
-                document.getElementById('profile-initials').textContent = user.name.charAt(0).toUpperCase();
-            }
-
-            try {
-                const orders = await fetchAPI('/orders');
-                renderOrders(orders);
-            } catch (error) {
-                document.getElementById('order-history-container').innerHTML = '<p>Failed to load orders.</p>';
-            }
+        document.getElementById('logout-btn').addEventListener('click', (e) => {
+            e.preventDefault();
+            AuthService.logout();
         });
 
-        function renderOrders(orders) {
-            const container = document.getElementById('order-history-container');
-            if (orders.length === 0) {
-                container.innerHTML = '<p>No orders yet.</p>';
+        function pick(row, keys) {
+            for (const k of keys) {
+                if (row[k] != null && row[k] !== '') return row[k];
+            }
+            return null;
+        }
+
+        async function loadCatalog() {
+            try {
+                const r = await fetch('/books.json');
+                return await r.json();
+            } catch {
+                return [];
+            }
+        }
+
+        function mergeLibraryRows(apiRows, localIds, catalog) {
+            const byId = new Map();
+            (apiRows || []).forEach((row) => {
+                const id = pick(row, ['book_id', 'id']);
+                if (id == null) return;
+                byId.set(Number(id), row);
+            });
+            localIds.forEach((id) => {
+                if (!byId.has(Number(id))) {
+                    byId.set(Number(id), { book_id: id });
+                }
+            });
+            const out = [];
+            byId.forEach((row, id) => {
+                const cat = catalog.find((b) => String(b.id) === String(id));
+                const title = pick(row, ['title']) || (cat && cat.title) || ('Book #' + id);
+                const author = pick(row, ['author']) || (cat && cat.author) || '—';
+                const cover = pick(row, ['cover_url']) || (cat && cat.cover_url) || '';
+                const purchased = pick(row, ['purchased_at', 'purchasedAt']);
+                out.push({ id, title, author, cover, purchased });
+            });
+            return out.sort((a, b) => String(b.purchased || '').localeCompare(String(a.purchased || '')));
+        }
+
+        function renderBooks(items) {
+            const el = document.getElementById('books-container');
+            if (!items.length) {
+                el.innerHTML = '<p class="empty-hint">No books yet. <a href="browse.html">Browse the catalog</a> or complete a purchase—your titles will show up here.</p>';
                 return;
             }
+            el.innerHTML = '<div class="books-grid-acct">' + items.map((b) => `
+                <article class="book-tile">
+                    <img src="${b.cover || 'https://via.placeholder.com/200x140?text=Book'}" alt="" onerror="this.src='https://via.placeholder.com/200x140?text=Book'">
+                    <div class="bd">
+                        <div class="t">${escapeHtml(b.title)}</div>
+                        <div class="a">${escapeHtml(b.author)}</div>
+                        ${b.purchased ? `<div class="a" style="margin-top:0.35rem;">Added ${formatDate(b.purchased)}</div>` : ''}
+                        <div class="actions">
+                            <a class="primary" href="book.html?id=${b.id}">View</a>
+                            <a class="secondary" href="reader.html?id=${b.id}">Read</a>
+                        </div>
+                    </div>
+                </article>
+            `).join('') + '</div>';
+        }
 
-            container.innerHTML = `
+        function escapeHtml(s) {
+            if (!s) return '';
+            return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+        }
+
+        function formatDate(d) {
+            if (!d) return '';
+            try {
+                return new Date(d).toLocaleDateString(undefined, { dateStyle: 'medium' });
+            } catch {
+                return String(d);
+            }
+        }
+
+        function renderOrders(orders) {
+            const el = document.getElementById('orders-container');
+            if (!orders || !orders.length) {
+                el.innerHTML = '<p class="empty-hint">No orders yet. Purchases made with your logged-in account will appear here.</p>';
+                return;
+            }
+            el.innerHTML = `
                 <table class="order-table">
                     <thead>
                         <tr>
-                            <th>Order ID</th>
+                            <th>Order</th>
                             <th>Date</th>
                             <th>Amount</th>
                             <th>Status</th>
                         </tr>
                     </thead>
                     <tbody>
-                        ${orders.map(order => `
-                            <tr>
-                                <td>#${order.id}</td>
-                                <td>${new Date(order.created_at).toLocaleDateString()}</td>
-                                <td>₹${order.amount}</td>
-                                <td>${order.status}</td>
-                            </tr>
-                        `).join('')}
+                        ${orders.map((o) => {
+                const st = (o.status || '').toLowerCase();
+                const badge = st === 'paid' ? 'badge badge-paid' : 'badge badge-other';
+                return `<tr>
+                                <td>#${o.id}</td>
+                                <td>${formatDate(o.created_at)}</td>
+                                <td>₹${o.amount ?? '—'}</td>
+                                <td><span class="${badge}">${escapeHtml(o.status || '—')}</span></td>
+                            </tr>`;
+            }).join('')}
                     </tbody>
-                </table>
-            `;
+                </table>`;
         }
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            if (!AuthService.isAuthenticated()) {
+                window.location.href = 'auth.html';
+                return;
+            }
+
+            const catalog = await loadCatalog();
+            let me = AuthService.getUser();
+
+            try {
+                me = await fetchAPI('/auth/me');
+                AuthService.setSession(localStorage.getItem('token'), me);
+            } catch (e) {
+                console.warn('Profile /me:', e.message);
+            }
+
+            const name = me.name || 'Reader';
+            const email = me.email || '';
+            const phone = me.phone || '';
+            const id = me.id;
+
+            document.getElementById('hero-name').textContent = name;
+            document.getElementById('hero-initial').textContent = (name.charAt(0) || 'R').toUpperCase();
+            document.getElementById('hero-email').textContent = email ? '📧 ' + email : '';
+            document.getElementById('hero-phone').textContent = phone ? '📱 +' + (phone.length === 10 ? '91' + phone : phone) : '';
+            document.getElementById('hero-since').textContent = me.created_at ? '📅 Since ' + formatDate(me.created_at) : '';
+
+            document.getElementById('d-email').textContent = email || '—';
+            document.getElementById('d-phone').textContent = phone ? ('+' + (phone.length === 10 ? '91' : '') + phone) : '—';
+            document.getElementById('d-id').textContent = id != null ? String(id) : '—';
+
+            let apiLibrary = [];
+            try {
+                apiLibrary = await fetchAPI('/library');
+            } catch (e) {
+                console.warn('Library API:', e.message);
+            }
+
+            let localIds = [];
+            try {
+                const lib = JSON.parse(localStorage.getItem('library') || '[]');
+                localIds = lib.map((b) => b.id).filter((x) => x != null);
+            } catch { /* ignore */ }
+
+            const merged = mergeLibraryRows(apiLibrary, localIds, catalog);
+            renderBooks(merged);
+
+            try {
+                const orders = await fetchAPI('/orders/my-orders');
+                renderOrders(orders);
+            } catch (e) {
+                document.getElementById('orders-container').innerHTML =
+                    '<p class="load-err">Could not load orders (check server / payment setup).</p>';
+            }
+
+            AuthService.refreshNav();
+        });
     </script>
     <script src="js/main.js"></script>
 </body>
+
 </html>
-
-
-

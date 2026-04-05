@@ -7,6 +7,7 @@ module.exports = function (db) {
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             name TEXT,
             email TEXT UNIQUE,
+            phone TEXT,
             password_hash TEXT,
             is_admin BOOLEAN DEFAULT 0,
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP

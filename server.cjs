@@ -3,6 +3,7 @@ const cors = require('cors');
 const path = require('path');
 const dotenv = require('dotenv');
 const { createClient } = require('@libsql/client');
+const rateLimit = require('express-rate-limit');
 
 dotenv.config();
 
@@ -15,8 +16,33 @@ const db = createClient({
     authToken: process.env.TURSO_AUTH_TOKEN,
 });
 
+async function runMigrations() {
+    const statements = [
+        'ALTER TABLE users ADD COLUMN phone TEXT',
+        'CREATE UNIQUE INDEX IF NOT EXISTS idx_users_phone ON users(phone) WHERE phone IS NOT NULL',
+    ];
+    for (const sql of statements) {
+        try {
+            await db.execute(sql);
+        } catch (e) {
+            const msg = String(e && e.message ? e.message : e);
+            if (!/duplicate column|already exists/i.test(msg)) {
+                console.warn('[migrate]', msg);
+            }
+        }
+    }
+}
+
+const authLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 40,
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: { success: false, error: 'Too many attempts. Try again in a few minutes.' },
+});
+
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: '100kb' }));
 app.use(express.static(path.join(__dirname, 'public')));
 
 // Make db available in routes
@@ -34,7 +60,7 @@ const wishlistRoutes = require('./routes/wishlist');
 const uploadRoutes = require('./routes/upload');
 const emailRoutes = require('./routes/email');
 
-app.use('/api/auth', authRoutes);
+app.use('/api/auth', authLimiter, authRoutes);
 app.use('/api/books', bookRoutes);
 app.use('/api/orders', orderRoutes);
 app.use('/api/library', libraryRoutes);
@@ -52,7 +78,14 @@ app.get('*', (req, res) => {
 });
 
 // ✅ Start server
-app.listen(PORT, () => {
-    console.log(`🚀 Server running on http://localhost:${PORT}`);
-    console.log(`📡 Using Turso database`);
-});
+(async () => {
+    try {
+        await runMigrations();
+    } catch (e) {
+        console.warn('[migrate] skipped:', e.message);
+    }
+    app.listen(PORT, () => {
+        console.log(`🚀 Server running on http://localhost:${PORT}`);
+        console.log(`📡 Using Turso database`);
+    });
+})();
