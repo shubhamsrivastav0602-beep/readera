@@ -9,7 +9,6 @@
         href="https://fonts.googleapis.com/css2?family=Lora:wght@400;500;600&family=Playfair+Display:wght@400;700&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="css/style.css">
-    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
     <style>
         .cart-layout {
             display: flex;
@@ -165,9 +164,6 @@
     </div>
 
     <script>
-        // ========== RAZORPAY TEST KEY ==========
-        const RAZORPAY_KEY_ID = 'rzp_test_SZWU44Pk0GG1I2';
-
         // ========== CART FUNCTIONS ==========
         function getCart() {
             const cart = localStorage.getItem('cart');
@@ -256,7 +252,7 @@
             document.getElementById('total-price').innerHTML = '₹' + total;
         }
 
-        // ========== RAZORPAY CHECKOUT ==========
+        // ========== PAYMENT BYPASS - DIRECT ADD TO LIBRARY ==========
         async function handleCheckout() {
             const cart = getCart();
 
@@ -272,89 +268,26 @@
                 return;
             }
 
-            let total = 0;
-            const bookIds = [];
+            // ✅ DIRECT ADD TO LIBRARY — NO PAYMENT
+            let library = JSON.parse(localStorage.getItem('library') || '[]');
             for (let i = 0; i < cart.length; i++) {
-                total = total + (cart[i].price || 0);
-                bookIds.push(cart[i].id);
-            }
-
-            try {
-                // 1. Create order on backend
-                const res = await fetch('/api/create-order', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ amount: total, bookIds: bookIds })
-                });
-
-                const order = await res.json();
-
-                if (!order.id) {
-                    throw new Error("Order creation failed");
+                const book = cart[i];
+                let exists = false;
+                for (let j = 0; j < library.length; j++) {
+                    if (library[j].id === book.id) {
+                        exists = true;
+                        break;
+                    }
                 }
-
-                // 2. Razorpay options
-                const options = {
-                    key: RAZORPAY_KEY_ID,
-                    amount: order.amount,
-                    currency: order.currency,
-                    name: 'Readera',
-                    description: `Purchase of ${cart.length} book(s)`,
-                    order_id: order.id,
-                    handler: async function (response) {
-                        // 3. Verify payment
-                        const verifyRes = await fetch('/api/verify-payment', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({
-                                razorpay_order_id: response.razorpay_order_id,
-                                razorpay_payment_id: response.razorpay_payment_id,
-                                razorpay_signature: response.razorpay_signature,
-                                bookIds: bookIds
-                            })
-                        });
-
-                        const result = await verifyRes.json();
-
-                        if (result.success) {
-                            // Add books to library
-                            let library = JSON.parse(localStorage.getItem('library') || '[]');
-                            for (let i = 0; i < cart.length; i++) {
-                                const book = cart[i];
-                                let exists = false;
-                                for (let j = 0; j < library.length; j++) {
-                                    if (library[j].id === book.id) {
-                                        exists = true;
-                                        break;
-                                    }
-                                }
-                                if (!exists) {
-                                    library.push(book);
-                                }
-                            }
-                            localStorage.setItem('library', JSON.stringify(library));
-
-                            clearCart();
-                            alert("✅ Payment successful! Books added to your library.");
-                            window.location.href = 'library.html';
-                        } else {
-                            alert("❌ Payment verification failed");
-                        }
-                    },
-                    prefill: {
-                        name: localStorage.getItem('userName') || 'Reader',
-                        email: localStorage.getItem('userEmail') || 'reader@example.com'
-                    },
-                    theme: { color: '#8B4513' }
-                };
-
-                const razorpay = new Razorpay(options);
-                razorpay.open();
-
-            } catch (error) {
-                console.error("Payment error:", error);
-                alert("Payment failed: " + error.message);
+                if (!exists) {
+                    library.push(book);
+                }
             }
+            localStorage.setItem('library', JSON.stringify(library));
+
+            clearCart();
+            alert("✅ Books added to your library! (Payment bypassed)");
+            window.location.href = 'library.html';
         }
 
         // ========== INITIALIZE ==========
