@@ -3,19 +3,21 @@
   "version": "1.0.0",
   "description": "A comprehensive Kindle-like eBook store application.",
   "type": "module",
-  "main": "server.js",
+  "main": "server.cjs",
   "scripts": {
-    "start": "node server.js",
-    "dev": "node server.js"
+    "start": "node server.cjs",
+    "dev": "node server.cjs"
   },
   "dependencies": {
     "@libsql/client": "^0.3.0",
     "bcrypt": "^5.1.1",
     "cors": "^2.8.5",
     "csv-parser": "^3.2.0",
-    "dotenv": "^16.4.5",
+    "dotenv": "^16.6.1",
     "express": "^4.21.2",
+    "groq-sdk": "^1.1.2",
     "jsonwebtoken": "^9.0.2",
+    "openai": "^6.33.0",
     "razorpay": "^2.9.6"
   }
 }

@@ -68,7 +68,6 @@ const Theme = {
         button.onmouseover = () => button.style.transform = 'scale(1.1)';
         button.onmouseout = () => button.style.transform = 'scale(1)';
 
-        button.addEventListener('click', () => this.toggle());
         document.body.appendChild(button);
 
         this.updateButtons(this.getCurrentTheme());
@@ -77,7 +76,19 @@ const Theme = {
     init() {
         const stored = this.getStoredTheme();
         this.apply(stored || this.getDefaultTheme());
-        this.injectFloatingToggle();
+        if (!document.querySelector('.navbar .theme-toggle, nav .theme-toggle')) {
+            this.injectFloatingToggle();
+        }
+        if (!this._themeClickBound) {
+            this._themeClickBound = true;
+            document.body.addEventListener('click', (e) => {
+                const btn = e.target.closest('.theme-toggle');
+                if (btn) {
+                    e.preventDefault();
+                    this.toggle();
+                }
+            });
+        }
     }
 };
 
