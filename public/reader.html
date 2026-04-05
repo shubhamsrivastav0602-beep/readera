@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Readera - Book Reader</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: 'Georgia', 'Times New Roman', serif;
+            background: #f5f0e8;
+            color: #2c1810;
+        }
+
+        /* Header */
+        .reader-header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: #2c1810;
+            color: white;
+            padding: 15px 20px;
+            z-index: 100;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .book-title {
+            font-size: 0.9rem;
+            font-weight: normal;
+            opacity: 0.9;
+        }
+
+        .controls {
+            display: flex;
+            gap: 15px;
+        }
+
+        .controls button {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.2rem;
+            cursor: pointer;
+            padding: 5px;
+        }
+
+        /* Main Content Container */
+        .reader-container {
+            margin-top: 70px;
+            margin-bottom: 60px;
+            padding: 20px;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        /* Book Content */
+        .book-content {
+            background: white;
+            border-radius: 8px;
+            padding: 30px 25px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            line-height: 1.8;
+            font-size: 1.05rem;
+        }
+
+        .chapter-title {
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+            color: #8B4513;
+            font-family: 'Playfair Display', serif;
+        }
+
+        .reading-time {
+            color: #888;
+            font-size: 0.8rem;
+            margin-bottom: 25px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+        }
+
+        /* Page turn buttons */
+        .page-nav {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 30px;
+            gap: 15px;
+        }
+
+        .page-nav button {
+            background: #2c1810;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-size: 1rem;
+            flex: 1;
+            transition: background 0.2s;
+        }
+
+        .page-nav button:hover {
+            background: #8B4513;
+        }
+
+        .page-nav button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        /* Page indicator */
+        .page-indicator {
+            text-align: center;
+            margin-top: 20px;
+            color: #888;
+            font-size: 0.85rem;
+        }
+
+        /* Progress bar */
+        .progress-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: #eee;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: #8B4513;
+            width: 0%;
+            transition: width 0.3s;
+        }
+
+        /* Font size controls */
+        .font-controls {
+            display: flex;
+            gap: 10px;
+            margin-left: auto;
+        }
+
+        .font-controls button {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            padding: 5px 12px;
+        }
+
+        /* Mobile responsive */
+        @media (max-width: 768px) {
+            .reader-header {
+                padding: 10px 15px;
+            }
+
+            .book-title {
+                font-size: 0.75rem;
+            }
+
+            .reader-container {
+                padding: 15px;
+                margin-top: 60px;
+            }
+
+            .book-content {
+                padding: 20px 18px;
+            }
+
+            .chapter-title {
+                font-size: 1.4rem;
+            }
+
+            .page-nav button {
+                padding: 10px 16px;
+                font-size: 0.9rem;
+            }
+        }
+
+        /* Dark mode toggle (optional) */
+        body.dark-mode {
+            background: #1a1a2e;
+            color: #e0e0e0;
+        }
+
+        body.dark-mode .book-content {
+            background: #16213e;
+            color: #e0e0e0;
+        }
+
+        body.dark-mode .page-nav button {
+            background: #0f3460;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="reader-header">
+        <span class="book-title" id="bookTitle">Loading...</span>
+        <div class="controls">
+            <div class="font-controls">
+                <button onclick="changeFontSize(-1)">A-</button>
+                <button onclick="changeFontSize(1)">A+</button>
+            </div>
+            <button onclick="toggleDarkMode()">🌙</button>
+            <button onclick="closeReader()">✕</button>
+        </div>
+    </div>
+
+    <div class="reader-container">
+        <div class="book-content" id="bookContent">
+            <div style="text-align:center; padding:50px;">Loading book content...</div>
+        </div>
+        <div class="page-nav">
+            <button id="prevBtn" onclick="prevPage()">← Previous</button>
+            <button id="nextBtn" onclick="nextPage()">Next →</button>
+        </div>
+        <div class="page-indicator" id="pageIndicator">Page 1 of 1</div>
+    </div>
+
+    <div class="progress-bar">
+        <div class="progress-fill" id="progressFill"></div>
+    </div>
+
+    <script>
+        // ========== GLOBAL VARIABLES ==========
+        let currentBook = null;
+        let pages = [];
+        let currentPage = 0;
+        let fontSize = 100;
+
+        // ========== GET BOOK ID FROM URL ==========
+        function getBookId() {
+            const params = new URLSearchParams(window.location.search);
+            return params.get('id');
+        }
+
+        // ========== LOAD BOOK CONTENT ==========
+        async function loadBook() {
+            const bookId = getBookId();
+            if (!bookId) {
+                document.getElementById('bookContent').innerHTML = '<p>No book selected. <a href="browse.html">Browse Books</a></p>';
+                return;
+            }
+
+            try {
+                const response = await fetch('/books.json');
+                const books = await response.json();
+                currentBook = books.find(b => b.id == bookId);
+
+                if (!currentBook) {
+                    document.getElementById('bookContent').innerHTML = '<p>Book not found.</p>';
+                    return;
+                }
+
+                document.getElementById('bookTitle').textContent = currentBook.title;
+
+                // Split content into pages
+                const fullContent = currentBook.full_content_text || currentBook.description || 'No content available.';
+                pages = splitIntoPages(fullContent);
+
+                renderPage();
+
+                // Save to recent reads
+                saveToRecentReads();
+
+            } catch (error) {
+                console.error(error);
+                document.getElementById('bookContent').innerHTML = '<p>Error loading book.</p>';
+            }
+        }
+
+        // ========== SPLIT CONTENT INTO PAGES ==========
+        function splitIntoPages(content) {
+            // Split by <!-- pagebreak --> or by ~500 words
+            if (content.includes('<!-- pagebreak -->')) {
+                return content.split('<!-- pagebreak -->').filter(p => p.trim().length > 0);
+            }
+
+            // Otherwise split by paragraphs (~500 words per page)
+            const paragraphs = content.split(/\n\n+/);
+            const pages = [];
+            let currentPage = '';
+            let wordCount = 0;
+
+            for (let para of paragraphs) {
+                const paraWords = para.split(/\s+/).length;
+                if (wordCount + paraWords > 500 && currentPage) {
+                    pages.push(currentPage);
+                    currentPage = para;
+                    wordCount = paraWords;
+                } else {
+                    currentPage += (currentPage ? '\n\n' : '') + para;
+                    wordCount += paraWords;
+                }
+            }
+            if (currentPage) pages.push(currentPage);
+
+            return pages.length ? pages : [content];
+        }
+
+        // ========== RENDER CURRENT PAGE ==========
+        function renderPage() {
+            if (!pages.length) return;
+
+            const content = pages[currentPage];
+            const formattedContent = formatContent(content);
+
+            document.getElementById('bookContent').innerHTML = `
+            <div class="chapter-title">${currentBook.title}</div>
+            <div class="reading-time">📖 Page ${currentPage + 1} of ${pages.length}</div>
+            ${formattedContent}
+        `;
+
+            // Update buttons
+            document.getElementById('prevBtn').disabled = currentPage === 0;
+            document.getElementById('nextBtn').disabled = currentPage === pages.length - 1;
+            document.getElementById('pageIndicator').textContent = `Page ${currentPage + 1} of ${pages.length}`;
+
+            // Update progress
+            const progress = ((currentPage + 1) / pages.length) * 100;
+            document.getElementById('progressFill').style.width = progress + '%';
+
+            // Scroll to top
+            window.scrollTo(0, 0);
+        }
+
+        // ========== FORMAT CONTENT ==========
+        function formatContent(content) {
+            // Convert markdown style to HTML
+            let html = content
+                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                .replace(/\*(.*?)\*/g, '<em>$1</em>')
+                .replace(/^### (.*$)/gim, '<h3>$1</h3>')
+                .replace(/^## (.*$)/gim, '<h2>$1</h2>')
+                .replace(/\n\n/g, '</p><p>')
+                .replace(/\n/g, '<br>');
+
+            return `<p>${html}</p>`;
+        }
+
+        // ========== PAGE NAVIGATION ==========
+        function nextPage() {
+            if (currentPage < pages.length - 1) {
+                currentPage++;
+                renderPage();
+            }
+        }
+
+        function prevPage() {
+            if (currentPage > 0) {
+                currentPage--;
+                renderPage();
+            }
+        }
+
+        // ========== FONT SIZE CONTROL ==========
+        function changeFontSize(delta) {
+            fontSize = Math.min(150, Math.max(70, fontSize + delta * 10));
+            document.querySelector('.book-content').style.fontSize = fontSize + '%';
+        }
+
+        // ========== DARK MODE ==========
+        function toggleDarkMode() {
+            document.body.classList.toggle('dark-mode');
+        }
+
+        // ========== CLOSE READER ==========
+        function closeReader() {
+            window.location.href = 'library.html';
+        }
+
+        // ========== SAVE TO RECENT READS ==========
+        function saveToRecentReads() {
+            let recent = JSON.parse(localStorage.getItem('recentBooks') || '[]');
+            recent = recent.filter(b => b.id !== currentBook.id);
+            recent.unshift({
+                id: currentBook.id,
+                title: currentBook.title,
+                author: currentBook.author,
+                cover_url: currentBook.cover_url,
+                lastPage: currentPage
+            });
+            if (recent.length > 10) recent.pop();
+            localStorage.setItem('recentBooks', JSON.stringify(recent));
+        }
+
+        // ========== SAVE READING PROGRESS ==========
+        function saveProgress() {
+            let progress = JSON.parse(localStorage.getItem('readingProgress') || '{}');
+            progress[currentBook.id] = currentPage;
+            localStorage.setItem('readingProgress', JSON.stringify(progress));
+        }
+
+        // Save progress before leaving
+        window.addEventListener('beforeunload', () => {
+            if (currentBook) saveProgress();
+        });
+
+        // ========== LOAD SAVED PROGRESS ==========
+        function loadProgress() {
+            const progress = JSON.parse(localStorage.getItem('readingProgress') || '{}');
+            const savedPage = progress[currentBook?.id];
+            if (savedPage && savedPage < pages.length) {
+                currentPage = savedPage;
+                renderPage();
+            }
+        }
+
+        // ========== KEYBOARD CONTROLS ==========
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight') nextPage();
+            if (e.key === 'ArrowLeft') prevPage();
+        });
+
+        // ========== SWIPE CONTROLS FOR MOBILE ==========
+        let touchStart = 0;
+        document.addEventListener('touchstart', (e) => {
+            touchStart = e.changedTouches[0].screenX;
+        });
+        document.addEventListener('touchend', (e) => {
+            const touchEnd = e.changedTouches[0].screenX;
+            if (touchEnd < touchStart - 50) nextPage();
+            if (touchEnd > touchStart + 50) prevPage();
+        });
+
+        // ========== INITIALIZE ==========
+        document.addEventListener('DOMContentLoaded', () => {
+            loadBook();
+        });
+    </script>
+</body>
+
+</html>
