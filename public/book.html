@@ -121,34 +121,42 @@
     </div>
 
     <script>
+        // ========== GLOBAL FUNCTIONS FOR BUTTONS ==========
+
         function updateCartCount() {
             const cart = JSON.parse(localStorage.getItem('cart') || '[]');
             const el = document.getElementById('cart-count');
             if (el) el.textContent = cart.length;
         }
 
-        function addToCart(book) {
+        // Add to cart function (global)
+        window.addToCart = function (bookId, title, price, coverUrl) {
             let cart = JSON.parse(localStorage.getItem('cart') || '[]');
-            if (!cart.find(item => item.id === book.id)) {
+            const book = { id: bookId, title: title, price: price, cover_url: coverUrl };
+
+            if (!cart.find(item => item.id === bookId)) {
                 cart.push(book);
                 localStorage.setItem('cart', JSON.stringify(cart));
                 alert('✅ Added to cart!');
                 updateCartCount();
             } else {
-                alert('⚠️ Already in cart!');
+                alert('⚠️ Book already in cart!');
             }
-        }
+        };
 
-        function buyNow(book) {
-            addToCart(book);
+        // Buy now function (global)
+        window.buyNow = function (bookId, title, price, coverUrl) {
+            window.addToCart(bookId, title, price, coverUrl);
             window.location.href = 'cart.html';
-        }
+        };
 
+        // Check if book is purchased
         function checkPurchaseStatus(bookId) {
             const library = JSON.parse(localStorage.getItem('library') || '[]');
             return library.some(book => book.id === bookId);
         }
 
+        // Load book details
         async function loadBook() {
             const urlParams = new URLSearchParams(window.location.search);
             const bookId = urlParams.get('id');
@@ -174,7 +182,6 @@
                 let contentHtml = '';
 
                 if (purchased || isFree) {
-                    // Full content
                     contentHtml = `
                         <div class="full-section">
                             <div class="warning">📖 You have full access to this book!</div>
@@ -182,7 +189,6 @@
                         </div>
                     `;
                 } else {
-                    // Preview only
                     contentHtml = `
                         <div class="preview-section">
                             <div class="warning">🔒 This is a preview. Purchase the book to read the full content!</div>
@@ -195,20 +201,22 @@
                     `;
                 }
 
+                const coverUrl = book.cover_url || 'https://via.placeholder.com/200x280?text=No+Cover';
+
                 const html = `
                     <div class="book-header">
-                        <img src="${book.cover_url || 'https://via.placeholder.com/200x280?text=No+Cover'}" class="book-cover" onerror="this.src='https://via.placeholder.com/200x280?text=No+Cover'">
+                        <img src="${coverUrl}" class="book-cover" onerror="this.src='https://via.placeholder.com/200x280?text=No+Cover'">
                         <div class="book-info">
                             <h1 class="book-title">${escapeHtml(book.title)}</h1>
                             <p class="book-author">by ${escapeHtml(book.author) || 'Unknown'}</p>
                             <div class="book-price">${book.price === 0 ? 'FREE' : '₹' + book.price}</div>
                             <div class="book-actions">
                                 ${!purchased && book.price > 0 ? `
-                                    <button class="btn btn-primary" onclick="buyNow({id:${book.id}, title:'${escapeHtml(book.title)}', price:${book.price}})">Buy Now (₹${book.price})</button>
-                                    <button class="btn btn-secondary" onclick="addToCart({id:${book.id}, title:'${escapeHtml(book.title)}', price:${book.price}})">Add to Cart</button>
+                                    <button class="btn btn-primary" onclick="buyNow(${book.id}, '${escapeHtml(book.title)}', ${book.price}, '${coverUrl}')">Buy Now (₹${book.price})</button>
+                                    <button class="btn btn-secondary" onclick="addToCart(${book.id}, '${escapeHtml(book.title)}', ${book.price}, '${coverUrl}')">Add to Cart</button>
                                 ` : ''}
                                 ${purchased ? `<button class="btn btn-primary" onclick="alert('You already own this book!')">✓ Already in Library</button>` : ''}
-                                ${book.price === 0 ? `<button class="btn btn-primary" onclick="addToCart({id:${book.id}, title:'${escapeHtml(book.title)}', price:0})">📖 Read Now (FREE)</button>` : ''}
+                                ${book.price === 0 ? `<button class="btn btn-primary" onclick="addToCart(${book.id}, '${escapeHtml(book.title)}', 0, '${coverUrl}')">📖 Read Now (FREE)</button>` : ''}
                             </div>
                         </div>
                     </div>
