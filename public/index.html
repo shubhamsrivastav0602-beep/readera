@@ -82,6 +82,22 @@
             font-weight: bold;
         }
 
+        .theme-toggle {
+            background: transparent;
+            border: 2px solid #8B4513;
+            color: #8B4513;
+            border-radius: 999px;
+            padding: 0.7rem 1rem;
+            cursor: pointer;
+            font-size: 0.95rem;
+            transition: background 0.2s, color 0.2s;
+        }
+
+        .theme-toggle:hover {
+            background: #8B4513;
+            color: white;
+        }
+
         .menu-toggle {
             display: none;
             background: none;
@@ -227,6 +243,50 @@
             color: #666;
         }
 
+        body.dark-mode {
+            background: #0f172a;
+            color: #e2e8f0;
+        }
+
+        body.dark-mode .navbar {
+            background: #111827;
+            border-color: #1f2937;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.35);
+        }
+
+        body.dark-mode .nav-menu li a {
+            color: #e2e8f0;
+        }
+
+        body.dark-mode .nav-menu li a:hover {
+            color: #fbbf24;
+        }
+
+        body.dark-mode .hero {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+        }
+
+        body.dark-mode .book-card,
+        body.dark-mode .recent-card {
+            background: #1f2937;
+            color: #e2e8f0;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        body.dark-mode .search-box input {
+            background: #111827;
+            color: #e2e8f0;
+            border: 1px solid #334155;
+        }
+
+        body.dark-mode .search-box button {
+            background: #2563eb;
+        }
+
+        body.dark-mode footer {
+            background: #0b1120;
+        }
+
         /* ========== FOOTER ========== */
         footer {
             background: #0a2540;
@@ -325,6 +385,7 @@
         <p>&copy; 2025 Readera. All rights reserved.</p>
     </footer>
 
+    <script src="js/main.js"></script>
     <script>
         // ========== GLOBAL FUNCTIONS ==========
 

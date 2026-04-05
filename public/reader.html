@@ -212,8 +212,6 @@
             <div class="font-controls">
                 <button onclick="changeFontSize(-1)">A-</button>
                 <button onclick="changeFontSize(1)">A+</button>
-            </div>
-            <button onclick="toggleDarkMode()">🌙</button>
             <button onclick="closeReader()">✕</button>
         </div>
     </div>
@@ -371,11 +369,6 @@
             document.querySelector('.book-content').style.fontSize = fontSize + '%';
         }
 
-        // ========== DARK MODE ==========
-        function toggleDarkMode() {
-            document.body.classList.toggle('dark-mode');
-        }
-
         // ========== CLOSE READER ==========
         function closeReader() {
             window.location.href = 'library.html';
@@ -440,6 +433,7 @@
             loadBook();
         });
     </script>
+    <script src="js/main.js"></script>
 </body>
 
 </html>
