@@ -5,123 +5,120 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>My Library - Readera</title>
-    <!-- Google Fonts -->
-    <link
-        href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;1,400&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap"
-        rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/style.css">
+    <style>
+        .library-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 25px;
+            margin-top: 30px;
+        }
+
+        .book-card {
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s;
+        }
+
+        .book-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .book-cover {
+            width: 100%;
+            height: 220px;
+            object-fit: cover;
+        }
+
+        .book-info {
+            padding: 12px;
+        }
+
+        .book-title {
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .btn-read {
+            background: #8B4513;
+            color: white;
+            border: none;
+            padding: 8px;
+            width: 100%;
+            cursor: pointer;
+            border-radius: 0 0 8px 8px;
+        }
+
+        .empty-library {
+            text-align: center;
+            padding: 60px;
+        }
+    </style>
 </head>
 
 <body>
     <nav>
-        <div class="nav-brand">
-            <a href="index.html">Readera</a>
-        </div>
+        <div class="nav-brand"><a href="index.html">Readera</a></div>
         <div class="nav-links">
             <a href="index.html">Home</a>
             <a href="browse.html">Browse Books</a>
         </div>
         <div class="nav-user">
-            <!-- Nav updates dynamically via api.js -->
-            <a href="cart.html" class="cart-link">Cart (<span id="cart-count">0</span>)</a>
-            <a href="auth.html" class="btn btn-primary guest-only">Login</a>
-
-            <!-- Authenticated Links -->
-            <a href="library.html" class="user-only">My Library</a>
-            <a href="profile.html" class="user-only" id="nav-username">Profile</a>
-            <a href="#" id="logout-btn" class="user-only">Logout</a>
+            <a href="cart.html">Cart (<span id="cart-count">0</span>)</a>
+            <a href="auth.html">Login</a>
         </div>
     </nav>
 
-    <div class="loader" id="global-loader"></div>
-
-    <div class="container" style="min-height: 80vh;">
-        <h1 class="section-title">My Digital Library</h1>
-        <div id="library-grid" class="books-grid">
-            <!-- Books will be injected here via JS -->
-            <p style="grid-column: 1/-1; text-align: center;">Loading your books...</p>
+    <div class="container">
+        <h1 class="section-title">📚 My Digital Library</h1>
+        <div id="library-grid" class="library-grid">
+            <div class="loader">Loading your library...</div>
         </div>
     </div>
 
-    <!-- Scripts -->
-    <script src="js/api.js"></script>
     <script>
-        document.addEventListener('DOMContentLoaded', async () => {
-            if (!AuthService.isAuthenticated()) {
-                window.location.href = 'auth.html';
-                return;
-            }
+        function updateCartCount() {
+            const cart = JSON.parse(localStorage.getItem('cart') || '[]');
+            const el = document.getElementById('cart-count');
+            if (el) el.textContent = cart.length;
+        }
 
-            try {
-                const books = await fetchAPI('/library');
-                renderLibrary(books);
-            } catch (error) {
-                document.getElementById('library-grid').innerHTML = '<p style="grid-column: 1/-1; text-align:center">Failed to load library.</p>';
-            }
-        });
+        function renderLibrary() {
+            const library = JSON.parse(localStorage.getItem('library') || '[]');
+            const grid = document.getElementById('library-grid');
 
-        function renderLibrary(books) {
-            const container = document.getElementById('library-grid');
-            if (books.length === 0) {
-                container.innerHTML = `
-                    <div style="grid-column: 1/-1; text-align: center; padding: 40px;">
-                        <p>You haven't purchased any books yet.</p>
-                        <a href="browse.html" class="btn btn-primary" style="margin-top: 20px;">Browse Catalog</a>
+            if (library.length === 0) {
+                grid.innerHTML = `
+                    <div class="empty-library">
+                        <h2>Your library is empty</h2>
+                        <p>Purchase books to see them here!</p>
+                        <a href="browse.html" class="btn btn-primary">Browse Books</a>
                     </div>
                 `;
                 return;
             }
 
-            container.innerHTML = books.map(book => `
-                <div class="book-card">
-                    <img src="${book.cover_url}" alt="${book.title}" class="book-cover">
+            grid.innerHTML = library.map(book => `
+                <div class="book-card" onclick="location.href='book.html?id=${book.id}'">
+                    <img src="${book.cover_url || 'https://via.placeholder.com/180x220?text=No+Cover'}" class="book-cover" onerror="this.src='https://via.placeholder.com/180x220?text=No+Cover'">
                     <div class="book-info">
-                        <h3 class="book-title">${book.title}</h3>
-                        <p class="book-author">${book.author}</p>
-                        <a href="read.html?id=${book.id}" class="btn btn-primary" style="margin-top: auto;">Read Now</a>
+                        <div class="book-title">${book.title.substring(0, 35)}</div>
+                        <div class="book-author">${book.author || 'Unknown'}</div>
                     </div>
+                    <button class="btn-read" onclick="event.stopPropagation(); location.href='book.html?id=${book.id}'">📖 Read Now</button>
                 </div>
             `).join('');
         }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            updateCartCount();
+            renderLibrary();
+        });
     </script>
-
-    <!-- ✅ FOOTER ADDED HERE - Before </body> -->
-    <footer style="background: #2c1810; color: white; padding: 40px 0; margin-top: 60px;">
-        <div class="container">
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 30px;">
-                <div>
-                    <h3 style="color: #D2691E;">Readera</h3>
-                    <p>Your digital library for thousands of eBooks across all genres.</p>
-                </div>
-                <div>
-                    <h4>Quick Links</h4>
-                    <ul style="list-style: none; padding: 0;">
-                        <li><a href="index.html" style="color: white; text-decoration: none;">Home</a></li>
-                        <li><a href="browse.html" style="color: white; text-decoration: none;">Browse Books</a></li>
-                        <li><a href="about.html" style="color: white; text-decoration: none;">About Us</a></li>
-                        <li><a href="contact.html" style="color: white; text-decoration: none;">Contact</a></li>
-                    </ul>
-                </div>
-                <div>
-                    <h4>Legal</h4>
-                    <ul style="list-style: none; padding: 0;">
-                        <li><a href="privacy.html" style="color: white; text-decoration: none;">Privacy Policy</a></li>
-                        <li><a href="terms.html" style="color: white; text-decoration: none;">Terms of Service</a></li>
-                        <li><a href="disclaimer.html" style="color: white; text-decoration: none;">Disclaimer</a></li>
-                    </ul>
-                </div>
-                <div>
-                    <h4>Connect</h4>
-                    <ul style="list-style: none; padding: 0;">
-                        <li><a href="contact.html" style="color: white; text-decoration: none;">📧 Email Us</a></li>
-                    </ul>
-                </div>
-            </div>
-            <hr style="border-color: #4a2c1a; margin: 20px 0;">
-            <p style="text-align: center;">&copy; 2025 Readera. All rights reserved.</p>
-        </div>
-    </footer>
-
 </body>
 
 </html>
