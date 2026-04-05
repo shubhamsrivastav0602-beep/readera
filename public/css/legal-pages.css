@@ -1,0 +1,141 @@
+/* Shared layout for Privacy, Terms, Disclaimer, etc. */
+.legal-skip {
+    position: absolute;
+    left: -9999px;
+}
+.legal-skip:focus {
+    left: 1rem;
+    top: 1rem;
+    z-index: 9999;
+    padding: 0.5rem 1rem;
+    background: #0a2540;
+    color: #fff;
+}
+
+.legal-page {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    font-family: 'Inter', system-ui, sans-serif;
+    background: #f8fafc;
+    color: #1e293b;
+}
+
+.legal-topbar {
+    background: #0a2540;
+    color: #fff;
+    padding: 0.75rem 1.25rem;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+}
+
+.legal-topbar a {
+    color: #e2e8f0;
+    text-decoration: none;
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+.legal-topbar a:hover {
+    color: #fff;
+}
+
+.legal-brand {
+    font-weight: 700;
+    font-size: 1.15rem;
+    color: #fff !important;
+}
+
+.legal-topbar nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.legal-main {
+    flex: 1;
+    max-width: 42rem;
+    margin: 0 auto;
+    padding: 2.5rem 1.25rem 4rem;
+    width: 100%;
+}
+
+.legal-main h1 {
+    font-size: clamp(1.75rem, 4vw, 2.25rem);
+    color: #0a2540;
+    margin-bottom: 0.35rem;
+    line-height:1.2;
+}
+
+.legal-updated {
+    font-size: 0.9rem;
+    color: #64748b;
+    margin-bottom: 2rem;
+    padding-bottom: 1.25rem;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.legal-main h2 {
+    font-size: 1.15rem;
+    color: #0f172a;
+    margin: 2rem 0 0.75rem;
+}
+
+.legal-main h3 {
+    font-size: 1rem;
+    color: #334155;
+    margin: 1.25rem 0 0.5rem;
+}
+
+.legal-main p,
+.legal-main li {
+    line-height: 1.75;
+    color: #475569;
+    font-size: 0.95rem;
+}
+
+.legal-main p {
+    margin: 0 0 1rem;
+}
+
+.legal-main ul,
+.legal-main ol {
+    margin: 0 0 1rem 1.25rem;
+}
+
+.legal-main li {
+    margin-bottom: 0.35rem;
+}
+
+.legal-callout {
+    background: #fff;
+    border-left: 4px solid #8B4513;
+    padding: 1rem 1.15rem;
+    margin: 1.5rem 0;
+    border-radius: 0 10px 10px 0;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+}
+
+.legal-callout p {
+    margin: 0;
+    font-size: 0.9rem;
+}
+
+.legal-footer-mini {
+    background: #0f172a;
+    color: #94a3b8;
+    padding: 1.5rem 1.25rem;
+    text-align: center;
+    font-size: 0.85rem;
+}
+
+.legal-footer-mini a {
+    color: #cbd5e1;
+    margin: 0 0.5rem;
+}
+
+.legal-footer-mini a:hover {
+    color: #fff;
+}

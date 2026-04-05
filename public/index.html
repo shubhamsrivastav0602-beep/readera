@@ -423,10 +423,11 @@
 
         /* ========== FOOTER ========== */
         .site-footer {
-            background: #0a2540;
+            background: linear-gradient(180deg, #0c2744 0%, #061526 100%);
             color: #cbd5e1;
             margin-top: auto;
-            padding: 2.5rem 1.5rem 1.5rem;
+            padding: 3rem 1.5rem 1.5rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.06);
         }
 
         .footer-inner {
@@ -434,19 +435,89 @@
             margin: 0 auto;
         }
 
-        .footer-grid {
+        .footer-main {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-            gap: 2rem;
-            margin-bottom: 2rem;
+            grid-template-columns: 1.35fr repeat(4, minmax(0, 1fr));
+            gap: 2.25rem;
+            margin-bottom: 2.25rem;
+        }
+
+        @media (max-width: 992px) {
+            .footer-main {
+                grid-template-columns: 1fr 1fr;
+            }
+            .footer-brand {
+                grid-column: 1 / -1;
+            }
+        }
+
+        @media (max-width: 520px) {
+            .footer-main {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .footer-brand .footer-logo {
+            font-size: 1.65rem;
+            font-weight: 700;
+            color: #fff;
+            text-decoration: none;
+            letter-spacing: -0.02em;
+            display: inline-block;
+            margin-bottom: 0.65rem;
+        }
+
+        .footer-brand .footer-logo:hover {
+            color: #fbbf24;
+        }
+
+        .footer-tagline {
+            font-size: 0.92rem;
+            line-height: 1.6;
+            color: #94a3b8;
+            max-width: 22rem;
+            margin-bottom: 1rem;
+        }
+
+        .footer-trust {
+            font-size: 0.8rem;
+            color: #64748b;
+            line-height: 1.5;
+            margin-bottom: 1.15rem;
+        }
+
+        .footer-social {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.6rem;
+        }
+
+        .footer-social a {
+            width: 42px;
+            height: 42px;
+            border-radius: 11px;
+            background: rgba(255, 255, 255, 0.08);
+            color: #e2e8f0;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            font-size: 1rem;
+            transition: background 0.2s, color 0.2s, transform 0.15s;
+        }
+
+        .footer-social a:hover {
+            background: rgba(251, 191, 36, 0.2);
+            color: #fbbf24;
+            transform: translateY(-2px);
         }
 
         .footer-col h3 {
             color: #fff;
-            font-size: 0.8rem;
+            font-size: 0.72rem;
             text-transform: uppercase;
-            letter-spacing: 0.06em;
-            margin-bottom: 1rem;
+            letter-spacing: 0.1em;
+            margin-bottom: 1.1rem;
             font-weight: 600;
         }
 
@@ -455,26 +526,100 @@
         }
 
         .footer-col li {
-            margin-bottom: 0.55rem;
+            margin-bottom: 0.5rem;
         }
 
-        .footer-col a {
+        .footer-link {
             color: #94a3b8;
             text-decoration: none;
-            font-size: 0.9rem;
-            transition: color 0.2s;
+            font-size: 0.88rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.45rem;
+            transition: color 0.2s, padding-left 0.2s;
+            padding: 0.2rem 0;
         }
 
-        .footer-col a:hover {
+        .footer-link i {
+            width: 1rem;
+            text-align: center;
+            opacity: 0.75;
+            font-size: 0.8rem;
+        }
+
+        .footer-link:hover {
             color: #fff;
+            padding-left: 4px;
+        }
+
+        .footer-link:hover i {
+            color: #fbbf24;
+            opacity: 1;
+        }
+
+        .footer-cta {
+            margin-top: 1.25rem;
+            padding-top: 1.25rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+        }
+
+        .footer-cta p {
+            font-size: 0.88rem;
+            color: #94a3b8;
+            margin: 0;
+            max-width: 36rem;
+            line-height: 1.5;
+        }
+
+        .footer-cta a.btn-footer {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            background: #8B4513;
+            color: #fff !important;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.88rem;
+            padding: 0.65rem 1.15rem;
+            border-radius: 10px;
+            transition: background 0.2s, transform 0.15s;
+        }
+
+        .footer-cta a.btn-footer:hover {
+            background: #a16207;
+            transform: translateY(-1px);
         }
 
         .footer-bottom {
             border-top: 1px solid rgba(255, 255, 255, 0.1);
-            padding-top: 1.25rem;
+            padding-top: 1.35rem;
             text-align: center;
-            font-size: 0.85rem;
+            font-size: 0.82rem;
             color: #94a3b8;
+        }
+
+        .footer-bottom-links {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 0.35rem 1rem;
+            margin-bottom: 0.65rem;
+        }
+
+        .footer-bottom-links a {
+            color: #cbd5e1;
+            text-decoration: none;
+            font-size: 0.82rem;
+        }
+
+        .footer-bottom-links a:hover {
+            color: #fbbf24;
+            text-decoration: underline;
         }
 
         /* ========== DARK MODE ========== */
@@ -596,7 +741,12 @@
         }
 
         body.dark-mode .site-footer {
-            background: #030712;
+            background: linear-gradient(180deg, #020617 0%, #000 100%);
+            border-top-color: rgba(255, 255, 255, 0.05);
+        }
+
+        body.dark-mode .footer-cta {
+            border-top-color: rgba(255, 255, 255, 0.06);
         }
 
         /* ========== MOBILE ========== */
@@ -718,40 +868,66 @@
 
     <footer class="site-footer">
         <div class="footer-inner">
-            <div class="footer-grid">
+            <div class="footer-main">
+                <div class="footer-brand">
+                    <a class="footer-logo" href="index.html">Readera</a>
+                    <p class="footer-tagline">Your calm digital library—discover titles, save progress, and read in a focused
+                        experience built for long sessions on any device.</p>
+                    <p class="footer-trust">Secure checkout · Reading progress saved · Catalog updated regularly</p>
+                    <div class="footer-social" aria-label="Social and contact">
+                        <a href="mailto:support@readera.com" title="Email support" aria-label="Email support"><i
+                                class="fas fa-envelope" aria-hidden="true"></i></a>
+                        <a href="contact.html" title="Contact form" aria-label="Contact form"><i class="fas fa-comment-dots"
+                                aria-hidden="true"></i></a>
+                        <a href="browse.html" title="Browse catalog" aria-label="Browse catalog"><i
+                                class="fas fa-book-open" aria-hidden="true"></i></a>
+                    </div>
+                </div>
                 <div class="footer-col">
                     <h3>Explore</h3>
                     <ul>
-                        <li><a href="index.html">Home</a></li>
-                        <li><a href="browse.html">Browse books</a></li>
-                        <li><a href="library.html">My library</a></li>
-                        <li><a href="cart.html">Cart</a></li>
+                        <li><a class="footer-link" href="index.html"><i class="fas fa-house" aria-hidden="true"></i> Home</a></li>
+                        <li><a class="footer-link" href="browse.html"><i class="fas fa-compass" aria-hidden="true"></i> Browse books</a></li>
+                        <li><a class="footer-link" href="library.html"><i class="fas fa-bookmark" aria-hidden="true"></i> My library</a></li>
+                        <li><a class="footer-link" href="cart.html"><i class="fas fa-shopping-cart" aria-hidden="true"></i> Cart</a></li>
+                        <li><a class="footer-link" href="library.html"><i class="fas fa-book-reader" aria-hidden="true"></i> Library &amp; read</a></li>
                     </ul>
                 </div>
                 <div class="footer-col">
                     <h3>Account</h3>
                     <ul>
-                        <li><a href="auth.html">Log in / Sign up</a></li>
-                        <li><a href="profile.html">Profile</a></li>
+                        <li><a class="footer-link" href="auth.html"><i class="fas fa-right-to-bracket" aria-hidden="true"></i> Log in / Sign up</a></li>
+                        <li><a class="footer-link" href="profile.html"><i class="fas fa-user" aria-hidden="true"></i> Profile</a></li>
                     </ul>
                 </div>
                 <div class="footer-col">
                     <h3>Legal</h3>
                     <ul>
-                        <li><a href="privacy.html">Privacy policy</a></li>
-                        <li><a href="terms.html">Terms of use</a></li>
-                        <li><a href="disclaimer.html">Disclaimer</a></li>
+                        <li><a class="footer-link" href="privacy.html"><i class="fas fa-shield-halved" aria-hidden="true"></i> Privacy policy</a></li>
+                        <li><a class="footer-link" href="terms.html"><i class="fas fa-file-contract" aria-hidden="true"></i> Terms of use</a></li>
+                        <li><a class="footer-link" href="disclaimer.html"><i class="fas fa-circle-info" aria-hidden="true"></i> Disclaimer</a></li>
                     </ul>
                 </div>
                 <div class="footer-col">
                     <h3>Company</h3>
                     <ul>
-                        <li><a href="about%20us.html">About us</a></li>
-                        <li><a href="contact.html">Contact</a></li>
+                        <li><a class="footer-link" href="about%20us.html"><i class="fas fa-heart" aria-hidden="true"></i> About us</a></li>
+                        <li><a class="footer-link" href="contact.html"><i class="fas fa-paper-plane" aria-hidden="true"></i> Contact &amp; support</a></li>
                     </ul>
                 </div>
             </div>
+            <div class="footer-cta">
+                <p>Questions about orders, refunds, or your data? Read our policies or reach out—we aim to respond within
+                    two business days.</p>
+                <a class="btn-footer" href="contact.html"><i class="fas fa-headset" aria-hidden="true"></i> Get help</a>
+            </div>
             <div class="footer-bottom">
+                <div class="footer-bottom-links">
+                    <a href="privacy.html">Privacy</a>
+                    <a href="terms.html">Terms</a>
+                    <a href="disclaimer.html">Disclaimer</a>
+                    <a href="about%20us.html">About</a>
+                </div>
                 <p>&copy; 2026 Readera. All rights reserved.</p>
             </div>
         </div>
