@@ -265,8 +265,10 @@
                                     <button class="btn btn-primary" onclick="buyNow(${book.id}, '${escapedTitle}', ${book.price}, '${coverUrl}')">Buy Now (₹${book.price})</button>
                                     <button class="btn btn-secondary" onclick="addToCart(${book.id}, '${escapedTitle}', ${book.price}, '${coverUrl}')">Add to Cart</button>
                                 ` : ''}
-                                ${purchased ? `<button class="btn btn-primary" onclick="alert('You already own this book!')">✓ Already in Library</button>` : ''}
-                                ${book.price === 0 ? `<button class="btn btn-primary" onclick="addToCart(${book.id}, '${escapedTitle}', 0, '${coverUrl}')">📖 Read Now (FREE)</button>` : ''}
+                                ${purchased ? `<button class="btn btn-primary" onclick="alert('You already own this book!')">✓ Already in Library</button>
+                                    <a class="btn btn-secondary" href="reader.html?id=${book.id}" style="display:inline-block;text-align:center;">📖 Immersive reader</a>` : ''}
+                                ${book.price === 0 ? `<button class="btn btn-primary" onclick="addToCart(${book.id}, '${escapedTitle}', 0, '${coverUrl}')">📖 Read Now (FREE)</button>
+                                    <a class="btn btn-secondary" href="reader.html?id=${book.id}" style="display:inline-block;text-align:center;">Immersive reader</a>` : ''}
                             </div>
                         </div>
                     </div>

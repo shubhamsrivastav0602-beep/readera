@@ -2,11 +2,15 @@ require('dotenv').config();
 const fs = require('fs');
 const OpenAI = require('openai');
 
-// ========== NVIDIA NIM CONFIGURATION ==========
-// ✅ SAHI ENDPOINT AUR MODEL
+const apiKey = process.env.OPENAI_API_KEY || process.env.NVIDIA_API_KEY;
+if (!apiKey) {
+    console.error('Set OPENAI_API_KEY (or NVIDIA_API_KEY) in .env — do not hardcode keys in the repo.');
+    process.exit(1);
+}
+
 const client = new OpenAI({
-    apiKey: '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',
-    baseURL: 'https://integrate.api.nvidia.com/v1',  // ✅ Sahi endpoint
+    apiKey,
+    ...(process.env.OPENAI_BASE_URL ? { baseURL: process.env.OPENAI_BASE_URL } : {}),
 });
 
 const booksPath = 'public/books.json';
