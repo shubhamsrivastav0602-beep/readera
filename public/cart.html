@@ -9,6 +9,7 @@
         href="https://fonts.googleapis.com/css2?family=Lora:wght@400;500;600&family=Playfair+Display:wght@400;700&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="css/style.css">
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
     <style>
         .cart-layout {
             display: flex;
@@ -125,9 +126,7 @@
 
 <body>
     <nav>
-        <div class="nav-brand">
-            <a href="index.html">Readera</a>
-        </div>
+        <div class="nav-brand"><a href="index.html">Readera</a></div>
         <div class="nav-links">
             <a href="index.html">Home</a>
             <a href="browse.html">Browse Books</a>
@@ -164,12 +163,13 @@
     </div>
 
     <script>
+        // ========== TEST MODE RAZORPAY KEY ==========
+        const RAZORPAY_KEY_ID = 'rzp_test_SZWU44Pk0GG1I2';
+
         // ========== CART FUNCTIONS ==========
         function getCart() {
             const cart = localStorage.getItem('cart');
-            if (cart) {
-                return JSON.parse(cart);
-            }
+            if (cart) return JSON.parse(cart);
             return [];
         }
 
@@ -186,31 +186,13 @@
         function updateCartCount() {
             const cart = getCart();
             const countEl = document.getElementById('cart-count');
-            if (countEl) {
-                countEl.textContent = cart.length;
-            }
+            if (countEl) countEl.textContent = cart.length;
         }
 
         function removeFromCart(bookId) {
-            let cart = getCart();
-            const newCart = [];
-            for (let i = 0; i < cart.length; i++) {
-                if (cart[i].id !== bookId) {
-                    newCart.push(cart[i]);
-                }
-            }
-            saveCart(newCart);
+            let cart = getCart().filter(item => item.id !== bookId);
+            saveCart(cart);
             renderCart();
-        }
-
-        function escapeHtml(str) {
-            if (!str) return '';
-            return str.replace(/[&<>]/g, function (m) {
-                if (m === '&') return '&amp;';
-                if (m === '<') return '&lt;';
-                if (m === '>') return '&gt;';
-                return m;
-            });
         }
 
         function renderCart() {
@@ -230,11 +212,10 @@
 
             let total = 0;
             let html = '';
-
             for (let i = 0; i < cart.length; i++) {
                 const item = cart[i];
-                total = total + (item.price || 0);
-                html = html + `
+                total += (item.price || 0);
+                html += `
                     <div class="cart-item">
                         <img src="${item.cover_url || 'https://via.placeholder.com/80x120?text=Book'}" class="ci-img" onerror="this.src='https://via.placeholder.com/80x120?text=Book'">
                         <div class="ci-details">
@@ -246,16 +227,24 @@
                     </div>
                 `;
             }
-
             container.innerHTML = html;
             document.getElementById('subtotal').innerHTML = '₹' + total;
             document.getElementById('total-price').innerHTML = '₹' + total;
         }
 
-        // ========== PAYMENT BYPASS - DIRECT ADD TO LIBRARY ==========
+        function escapeHtml(str) {
+            if (!str) return '';
+            return str.replace(/[&<>]/g, function (m) {
+                if (m === '&') return '&amp;';
+                if (m === '<') return '&lt;';
+                if (m === '>') return '&gt;';
+                return m;
+            });
+        }
+
+        // ========== RAZORPAY PAYMENT (TEST MODE) ==========
         async function handleCheckout() {
             const cart = getCart();
-
             if (cart.length === 0) {
                 alert("Cart is empty");
                 return;
@@ -268,75 +257,114 @@
                 return;
             }
 
-            // ✅ DIRECT ADD TO LIBRARY — NO PAYMENT
-            let library = JSON.parse(localStorage.getItem('library') || '[]');
+            let total = 0;
+            const bookIds = [];
             for (let i = 0; i < cart.length; i++) {
-                const book = cart[i];
-                let exists = false;
-                for (let j = 0; j < library.length; j++) {
-                    if (library[j].id === book.id) {
-                        exists = true;
-                        break;
-                    }
-                }
-                if (!exists) {
-                    library.push(book);
-                }
+                total += (cart[i].price || 0);
+                bookIds.push(cart[i].id);
             }
-            localStorage.setItem('library', JSON.stringify(library));
 
-            clearCart();
-            alert("✅ Books added to your library! (Payment bypassed)");
-            window.location.href = 'library.html';
+            try {
+                // 1. Create order
+                const orderRes = await fetch('/api/create-order', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ amount: total, bookIds: bookIds })
+                });
+                const order = await orderRes.json();
+                if (!order.id) throw new Error("Order creation failed");
+
+                // 2. Razorpay Checkout
+                const options = {
+                    key: RAZORPAY_KEY_ID,
+                    amount: order.amount,
+                    currency: order.currency,
+                    name: 'Readera',
+                    description: `Purchase of ${cart.length} book(s)`,
+                    order_id: order.id,
+                    handler: async function (response) {
+                        // 3. Verify payment
+                        const verifyRes = await fetch('/api/verify-payment', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                razorpay_order_id: response.razorpay_order_id,
+                                razorpay_payment_id: response.razorpay_payment_id,
+                                razorpay_signature: response.razorpay_signature,
+                                bookIds: bookIds
+                            })
+                        });
+                        const result = await verifyRes.json();
+
+                        if (result.success) {
+                            // Add to library
+                            let library = JSON.parse(localStorage.getItem('library') || '[]');
+                            for (let i = 0; i < cart.length; i++) {
+                                if (!library.find(b => b.id === cart[i].id)) {
+                                    library.push(cart[i]);
+                                }
+                            }
+                            localStorage.setItem('library', JSON.stringify(library));
+                            clearCart();
+                            alert("✅ Payment successful! Books added to your library.");
+                            window.location.href = 'library.html';
+                        } else {
+                            alert("❌ Payment verification failed");
+                        }
+                    },
+                    prefill: {
+                        name: localStorage.getItem('userName') || 'Reader',
+                        email: localStorage.getItem('userEmail') || 'reader@example.com'
+                    },
+                    theme: { color: '#8B4513' }
+                };
+
+                const razorpay = new Razorpay(options);
+                razorpay.open();
+
+            } catch (error) {
+                console.error("Payment error:", error);
+                alert("Payment failed: " + error.message);
+            }
         }
 
         // ========== INITIALIZE ==========
         updateCartCount();
         renderCart();
-
-        const checkoutBtn = document.getElementById('checkout-btn');
-        if (checkoutBtn) {
-            checkoutBtn.addEventListener('click', handleCheckout);
-        }
+        document.getElementById('checkout-btn').addEventListener('click', handleCheckout);
     </script>
-
-    <!-- FOOTER -->
     <footer style="background: #2c1810; color: white; padding: 40px 0; margin-top: 60px;">
         <div class="container">
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 30px;">
                 <div>
                     <h3 style="color: #D2691E;">Readera</h3>
-                    <p>Your digital library for thousands of eBooks across all genres.</p>
+                    <p>Your digital library.</p>
                 </div>
                 <div>
                     <h4>Quick Links</h4>
-                    <ul style="list-style: none; padding: 0;">
-                        <li><a href="index.html" style="color: white; text-decoration: none;">Home</a></li>
-                        <li><a href="browse.html" style="color: white; text-decoration: none;">Browse Books</a></li>
-                        <li><a href="about.html" style="color: white; text-decoration: none;">About Us</a></li>
-                        <li><a href="contact.html" style="color: white; text-decoration: none;">Contact</a></li>
+                    <ul style="list-style:none; padding:0;">
+                        <li><a href="index.html" style="color:white;">Home</a></li>
+                        <li><a href="browse.html" style="color:white;">Browse Books</a></li>
                     </ul>
                 </div>
                 <div>
                     <h4>Legal</h4>
-                    <ul style="list-style: none; padding: 0;">
-                        <li><a href="privacy.html" style="color: white; text-decoration: none;">Privacy Policy</a></li>
-                        <li><a href="terms.html" style="color: white; text-decoration: none;">Terms of Service</a></li>
-                        <li><a href="disclaimer.html" style="color: white; text-decoration: none;">Disclaimer</a></li>
+                    <ul style="list-style:none; padding:0;">
+                        <li><a href="privacy.html" style="color:white;">Privacy</a></li>
+                        <li><a href="terms.html" style="color:white;">Terms</a></li>
                     </ul>
                 </div>
                 <div>
                     <h4>Connect</h4>
-                    <ul style="list-style: none; padding: 0;">
-                        <li><a href="contact.html" style="color: white; text-decoration: none;">📧 Email Us</a></li>
+                    <ul style="list-style:none; padding:0;">
+                        <li><a href="contact.html" style="color:white;">Contact</a></li>
                     </ul>
                 </div>
             </div>
-            <hr style="border-color: #4a2c1a; margin: 20px 0;">
-            <p style="text-align: center;">&copy; 2025 Readera. All rights reserved.</p>
+            <hr style="border-color:#4a2c1a; margin:20px 0;">
+            <p style="text-align:center;">&copy; 2025 Readera. All rights reserved.</p>
         </div>
     </footer>
-
 </body>
 
 </html>
