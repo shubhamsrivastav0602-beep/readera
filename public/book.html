@@ -1,13 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Book Details - Readera</title>
-    <link
-        href="https://fonts.googleapis.com/css2?family=Lora:wght@400;500;600&family=Playfair+Display:wght@400;700&display=swap"
-        rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;500;600&family=Playfair+Display:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/style.css">
     <style>
         .book-container {
@@ -15,47 +12,40 @@
             margin: 40px auto;
             background: white;
             border-radius: 12px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
             overflow: hidden;
         }
-
         .book-header {
             display: flex;
             gap: 30px;
             padding: 30px;
             background: #f9f5f0;
         }
-
         .book-cover {
             width: 200px;
             height: 280px;
             object-fit: cover;
             border-radius: 8px;
         }
-
         .book-info {
             flex: 1;
         }
-
         .book-title {
             font-size: 2rem;
             margin-bottom: 10px;
             color: #0a2540;
         }
-
         .book-author {
             color: #666;
             font-size: 1.1rem;
             margin-bottom: 15px;
         }
-
         .book-price {
             font-size: 1.5rem;
             color: #8B4513;
             font-weight: bold;
             margin: 15px 0;
         }
-
         .btn {
             padding: 10px 25px;
             border: none;
@@ -64,43 +54,35 @@
             font-size: 1rem;
             margin-right: 10px;
         }
-
         .btn-primary {
             background: #8B4513;
             color: white;
         }
-
         .btn-secondary {
             background: #0a2540;
             color: white;
         }
-
-        .preview-section,
-        .full-section {
+        .preview-section, .full-section {
             padding: 30px;
             line-height: 1.8;
         }
-
         .warning {
             background: #fef5e7;
             padding: 15px;
             border-left: 4px solid #f39c12;
             margin-bottom: 20px;
         }
-
         @media (max-width: 768px) {
             .book-header {
                 flex-direction: column;
                 text-align: center;
             }
-
             .book-cover {
                 margin: 0 auto;
             }
         }
     </style>
 </head>
-
 <body>
     <nav>
         <div class="nav-brand"><a href="index.html">Readera</a></div>
@@ -121,20 +103,22 @@
     </div>
 
     <script>
-        // ========== GLOBAL FUNCTIONS FOR BUTTONS ==========
-
+        // ========== GLOBAL CART FUNCTIONS ==========
+        
         function updateCartCount() {
             const cart = JSON.parse(localStorage.getItem('cart') || '[]');
             const el = document.getElementById('cart-count');
             if (el) el.textContent = cart.length;
         }
 
-        // Add to cart function (global)
-        window.addToCart = function (bookId, title, price, coverUrl) {
+        // ✅ Fixed: Global addToCart function
+        window.addToCart = function(bookId, title, price, coverUrl) {
+            console.log("addToCart called:", bookId, title, price);
             let cart = JSON.parse(localStorage.getItem('cart') || '[]');
             const book = { id: bookId, title: title, price: price, cover_url: coverUrl };
-
-            if (!cart.find(item => item.id === bookId)) {
+            
+            const exists = cart.some(item => item.id === bookId);
+            if (!exists) {
                 cart.push(book);
                 localStorage.setItem('cart', JSON.stringify(cart));
                 alert('✅ Added to cart!');
@@ -144,8 +128,9 @@
             }
         };
 
-        // Buy now function (global)
-        window.buyNow = function (bookId, title, price, coverUrl) {
+        // ✅ Fixed: Global buyNow function
+        window.buyNow = function(bookId, title, price, coverUrl) {
+            console.log("buyNow called:", bookId, title, price);
             window.addToCart(bookId, title, price, coverUrl);
             window.location.href = 'cart.html';
         };
@@ -156,31 +141,42 @@
             return library.some(book => book.id === bookId);
         }
 
+        // Escape HTML
+        function escapeHtml(str) {
+            if (!str) return '';
+            return str.replace(/[&<>]/g, function(m) {
+                if (m === '&') return '&amp;';
+                if (m === '<') return '&lt;';
+                if (m === '>') return '&gt;';
+                return m;
+            });
+        }
+
         // Load book details
         async function loadBook() {
             const urlParams = new URLSearchParams(window.location.search);
             const bookId = urlParams.get('id');
-
+            
             if (!bookId) {
                 document.getElementById('book-container').innerHTML = '<div style="text-align:center;padding:50px;">No book ID provided</div>';
                 return;
             }
-
+            
             try {
                 const response = await fetch('/books.json');
                 const books = await response.json();
                 const book = books.find(b => b.id == bookId);
-
+                
                 if (!book) {
                     document.getElementById('book-container').innerHTML = '<div style="text-align:center;padding:50px;">Book not found</div>';
                     return;
                 }
-
+                
                 const purchased = checkPurchaseStatus(book.id);
                 const isFree = book.price === 0;
-
+                
                 let contentHtml = '';
-
+                
                 if (purchased || isFree) {
                     contentHtml = `
                         <div class="full-section">
@@ -200,9 +196,12 @@
                         </div>
                     `;
                 }
-
+                
                 const coverUrl = book.cover_url || 'https://via.placeholder.com/200x280?text=No+Cover';
-
+                
+                // ✅ IMPORTANT: Escape single quotes in title for onclick
+                const escapedTitle = book.title.replace(/'/g, "\\'");
+                
                 const html = `
                     <div class="book-header">
                         <img src="${coverUrl}" class="book-cover" onerror="this.src='https://via.placeholder.com/200x280?text=No+Cover'">
@@ -212,40 +211,29 @@
                             <div class="book-price">${book.price === 0 ? 'FREE' : '₹' + book.price}</div>
                             <div class="book-actions">
                                 ${!purchased && book.price > 0 ? `
-                                    <button class="btn btn-primary" onclick="buyNow(${book.id}, '${escapeHtml(book.title)}', ${book.price}, '${coverUrl}')">Buy Now (₹${book.price})</button>
-                                    <button class="btn btn-secondary" onclick="addToCart(${book.id}, '${escapeHtml(book.title)}', ${book.price}, '${coverUrl}')">Add to Cart</button>
+                                    <button class="btn btn-primary" onclick="buyNow(${book.id}, '${escapedTitle}', ${book.price}, '${coverUrl}')">Buy Now (₹${book.price})</button>
+                                    <button class="btn btn-secondary" onclick="addToCart(${book.id}, '${escapedTitle}', ${book.price}, '${coverUrl}')">Add to Cart</button>
                                 ` : ''}
                                 ${purchased ? `<button class="btn btn-primary" onclick="alert('You already own this book!')">✓ Already in Library</button>` : ''}
-                                ${book.price === 0 ? `<button class="btn btn-primary" onclick="addToCart(${book.id}, '${escapeHtml(book.title)}', 0, '${coverUrl}')">📖 Read Now (FREE)</button>` : ''}
+                                ${book.price === 0 ? `<button class="btn btn-primary" onclick="addToCart(${book.id}, '${escapedTitle}', 0, '${coverUrl}')">📖 Read Now (FREE)</button>` : ''}
                             </div>
                         </div>
                     </div>
                     ${contentHtml}
                 `;
-
+                
                 document.getElementById('book-container').innerHTML = html;
-
+                
             } catch (error) {
                 console.error(error);
                 document.getElementById('book-container').innerHTML = '<div style="text-align:center;padding:50px;">Error loading book</div>';
             }
         }
-
-        function escapeHtml(str) {
-            if (!str) return '';
-            return str.replace(/[&<>]/g, function (m) {
-                if (m === '&') return '&amp;';
-                if (m === '<') return '&lt;';
-                if (m === '>') return '&gt;';
-                return m;
-            });
-        }
-
+        
         document.addEventListener('DOMContentLoaded', () => {
             updateCartCount();
             loadBook();
         });
     </script>
 </body>
-
 </html>
