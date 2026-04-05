@@ -3,10 +3,9 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>Readera - Your Digital Library</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Readera - Digital Library</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
         * {
             margin: 0;
@@ -17,32 +16,11 @@
         body {
             font-family: 'Inter', sans-serif;
             background: #f5f7fa;
-            color: #1a2a3a;
         }
 
-        /* ========== NAVY BLUE THEME ========== */
-        :root {
-            --navy: #0a2540;
-            --navy-light: #1a3a5c;
-            --gold: #d4af37;
-            --white: #ffffff;
-            --gray-light: #f8f9fa;
-            --gray: #6c757d;
-        }
-
-        /* ========== NAVBAR (Kindle-style right menu) ========== */
         .navbar {
-            background: var(--navy);
+            background: #0a2540;
             padding: 1rem 2rem;
-            position: sticky;
-            top: 0;
-            z-index: 1000;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-        }
-
-        .nav-container {
-            max-width: 1400px;
-            margin: 0 auto;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -50,255 +28,124 @@
         }
 
         .logo a {
-            color: var(--gold);
+            color: #d4af37;
             font-size: 1.8rem;
-            font-weight: 700;
+            font-weight: bold;
             text-decoration: none;
-            letter-spacing: -0.5px;
         }
 
-        /* Right side menu - Kindle style */
-        .nav-menu {
+        .nav-links {
             display: flex;
             gap: 2rem;
             align-items: center;
-            list-style: none;
         }
 
-        .nav-menu li a {
-            color: var(--white);
+        .nav-links a {
+            color: white;
             text-decoration: none;
-            font-weight: 500;
-            transition: color 0.2s;
-            font-size: 1rem;
         }
 
-        .nav-menu li a:hover {
-            color: var(--gold);
-        }
-
-        .cart-icon {
-            position: relative;
-        }
-
-        .cart-count {
-            position: absolute;
-            top: -8px;
-            right: -12px;
-            background: var(--gold);
-            color: var(--navy);
-            border-radius: 50%;
-            padding: 2px 6px;
-            font-size: 0.7rem;
-            font-weight: bold;
-        }
-
-        /* Mobile menu button */
-        .menu-toggle {
-            display: none;
-            background: none;
-            border: none;
+        .hero {
+            background: #0a2540;
             color: white;
-            font-size: 1.5rem;
-            cursor: pointer;
-        }
-
-        /* ========== SEARCH SECTION ========== */
-        .search-section {
-            background: linear-gradient(135deg, var(--navy) 0%, var(--navy-light) 100%);
-            padding: 3rem 2rem;
             text-align: center;
+            padding: 4rem 2rem;
         }
 
-        .search-container {
-            max-width: 600px;
-            margin: 0 auto;
-        }
-
-        .search-container h1 {
-            color: white;
-            font-size: 2.2rem;
+        .hero h1 {
+            font-size: 2.5rem;
             margin-bottom: 1rem;
         }
 
         .search-box {
+            max-width: 500px;
+            margin: 2rem auto 0;
             display: flex;
-            background: white;
-            border-radius: 50px;
-            overflow: hidden;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
         }
 
         .search-box input {
             flex: 1;
-            padding: 1rem 1.5rem;
+            padding: 1rem;
             border: none;
-            font-size: 1rem;
-            outline: none;
+            border-radius: 8px 0 0 8px;
         }
 
         .search-box button {
-            background: var(--gold);
+            padding: 1rem 2rem;
+            background: #d4af37;
             border: none;
-            padding: 0 2rem;
+            border-radius: 0 8px 8px 0;
             cursor: pointer;
-            color: var(--navy);
             font-weight: bold;
-            transition: background 0.2s;
         }
 
-        .search-box button:hover {
-            background: #c5a220;
-        }
-
-        /* ========== FEATURED BOOKS ========== */
-        .featured-section {
-            max-width: 1400px;
+        .featured {
+            max-width: 1200px;
             margin: 3rem auto;
             padding: 0 2rem;
         }
 
-        .section-title {
-            font-size: 1.8rem;
+        .featured h2 {
             margin-bottom: 1.5rem;
-            color: var(--navy);
-            border-left: 5px solid var(--gold);
-            padding-left: 1rem;
+            color: #0a2540;
         }
 
         .books-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-            gap: 2rem;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 1.5rem;
         }
 
         .book-card {
             background: white;
-            border-radius: 12px;
+            border-radius: 8px;
             overflow: hidden;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-            transition: transform 0.2s, box-shadow 0.2s;
             cursor: pointer;
-        }
-
-        .book-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
         }
 
         .book-cover {
             width: 100%;
-            height: 260px;
+            height: 220px;
             object-fit: cover;
         }
 
         .book-info {
-            padding: 1rem;
+            padding: 0.8rem;
         }
 
         .book-title {
             font-weight: 600;
-            font-size: 1rem;
-            margin-bottom: 0.3rem;
-            color: var(--navy);
+            font-size: 0.9rem;
         }
 
         .book-author {
-            color: var(--gray);
-            font-size: 0.85rem;
-            margin-bottom: 0.5rem;
+            font-size: 0.8rem;
+            color: #666;
         }
 
         .book-price {
-            color: var(--gold);
+            color: #d4af37;
             font-weight: bold;
+            margin-top: 0.3rem;
         }
 
-        /* ========== FOOTER (same as before) ========== */
         footer {
-            background: var(--navy);
+            background: #0a2540;
             color: white;
-            padding: 3rem 2rem 1rem;
+            text-align: center;
+            padding: 2rem;
             margin-top: 3rem;
         }
 
-        .footer-container {
-            max-width: 1400px;
-            margin: 0 auto;
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 2rem;
-        }
-
-        .footer-links h4 {
-            margin-bottom: 1rem;
-            color: var(--gold);
-        }
-
-        .footer-links ul {
-            list-style: none;
-        }
-
-        .footer-links li {
-            margin-bottom: 0.5rem;
-        }
-
-        .footer-links a {
-            color: #ccc;
-            text-decoration: none;
-        }
-
-        .footer-links a:hover {
-            color: white;
-        }
-
-        .copyright {
-            text-align: center;
-            padding-top: 2rem;
-            margin-top: 2rem;
-            border-top: 1px solid #2c4c6c;
-            font-size: 0.85rem;
-        }
-
-        /* ========== MOBILE RESPONSIVE ========== */
         @media (max-width: 768px) {
             .navbar {
-                padding: 1rem;
-            }
-
-            .menu-toggle {
-                display: block;
-            }
-
-            .nav-menu {
-                display: none;
-                width: 100%;
                 flex-direction: column;
                 gap: 1rem;
-                padding: 1rem 0;
-                margin-top: 1rem;
-                border-top: 1px solid #2c4c6c;
             }
 
-            .nav-menu.active {
-                display: flex;
-            }
-
-            .search-container h1 {
-                font-size: 1.6rem;
-            }
-
-            .books-grid {
-                grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-                gap: 1rem;
-            }
-
-            .book-cover {
-                height: 200px;
-            }
-
-            .section-title {
-                font-size: 1.4rem;
+            .hero h1 {
+                font-size: 1.8rem;
             }
         }
     </style>
@@ -306,190 +153,71 @@
 
 <body>
 
-    <!-- ========== NAVBAR with right-aligned menu (Kindle style) ========== -->
     <nav class="navbar">
-        <div class="nav-container">
-            <div class="logo">
-                <a href="index.html">Readera</a>
-            </div>
-            <button class="menu-toggle" id="mobile-menu-btn">
-                <i class="fas fa-bars"></i>
-            </button>
-            <ul class="nav-menu" id="nav-menu">
-                <li><a href="index.html">Home</a></li>
-                <li><a href="browse.html">Browse Books</a></li>
-                <li><a href="about.html">About</a></li>
-                <li><a href="contact.html">Contact</a></li>
-                <li><a href="cart.html" class="cart-icon">
-                        Cart <i class="fas fa-shopping-cart"></i>
-                        <span class="cart-count" id="cart-count">0</span>
-                    </a></li>
-                <li><a href="auth.html" id="auth-link">Login</a></li>
-                <li><a href="#" id="logout-link" style="display:none;">Logout</a></li>
-            </ul>
+        <div class="logo"><a href="index.html">Readera</a></div>
+        <div class="nav-links">
+            <a href="index.html">Home</a>
+            <a href="browse.html">Browse Books</a>
+            <a href="cart.html">Cart (<span id="cart-count">0</span>)</a>
+            <a href="auth.html">Login</a>
         </div>
     </nav>
 
-    <!-- ========== SEARCH SECTION ========== -->
-    <section class="search-section">
-        <div class="search-container">
-            <h1>Discover Your Next Read</h1>
-            <div class="search-box">
-                <input type="text" id="search-input" placeholder="Search by title, author, or genre...">
-                <button id="search-btn"><i class="fas fa-search"></i> Search</button>
-            </div>
+    <section class="hero">
+        <h1>Discover Your Next Read</h1>
+        <p>Explore thousands of eBooks across all genres</p>
+        <div class="search-box">
+            <input type="text" id="searchInput" placeholder="Search by title, author...">
+            <button onclick="searchBooks()">Search</button>
         </div>
     </section>
 
-    <!-- ========== FEATURED BOOKS SECTION ========== -->
-    <section class="featured-section">
-        <h2 class="section-title">🔥 Featured Books</h2>
-        <div class="books-grid" id="featured-books-grid">
-            <div class="loader">Loading...</div>
-        </div>
+    <section class="featured">
+        <h2>📚 Featured Books</h2>
+        <div class="books-grid" id="featuredGrid">Loading...</div>
     </section>
 
-    <!-- ========== FOOTER ========== -->
     <footer>
-        <div class="footer-container">
-            <div class="footer-links">
-                <h4>Readera</h4>
-                <p>Your digital library for thousands of eBooks.</p>
-            </div>
-            <div class="footer-links">
-                <h4>Quick Links</h4>
-                <ul>
-                    <li><a href="index.html">Home</a></li>
-                    <li><a href="browse.html">Browse Books</a></li>
-                    <li><a href="about.html">About Us</a></li>
-                    <li><a href="contact.html">Contact</a></li>
-                </ul>
-            </div>
-            <div class="footer-links">
-                <h4>Legal</h4>
-                <ul>
-                    <li><a href="privacy.html">Privacy Policy</a></li>
-                    <li><a href="terms.html">Terms of Service</a></li>
-                    <li><a href="disclaimer.html">Disclaimer</a></li>
-                </ul>
-            </div>
-            <div class="footer-links">
-                <h4>Connect</h4>
-                <ul>
-                    <li><a href="contact.html">📧 Email Us</a></li>
-                </ul>
-            </div>
-        </div>
-        <div class="copyright">
-            &copy; 2025 Readera. All rights reserved.
-        </div>
+        <p>&copy; 2025 Readera. All rights reserved.</p>
     </footer>
 
     <script>
-        // ========== MOBILE MENU TOGGLE ==========
-        const menuBtn = document.getElementById('mobile-menu-btn');
-        const navMenu = document.getElementById('nav-menu');
-        if (menuBtn) {
-            menuBtn.addEventListener('click', () => {
-                navMenu.classList.toggle('active');
-            });
-        }
-
-        // ========== UPDATE CART COUNT ==========
         function updateCartCount() {
             const cart = JSON.parse(localStorage.getItem('cart') || '[]');
-            const cartCountSpan = document.getElementById('cart-count');
-            if (cartCountSpan) cartCountSpan.textContent = cart.length;
+            const el = document.getElementById('cart-count');
+            if (el) el.textContent = cart.length;
         }
 
-        // ========== CHECK LOGIN STATUS ==========
-        function updateAuthUI() {
-            const token = localStorage.getItem('token');
-            const authLink = document.getElementById('auth-link');
-            const logoutLink = document.getElementById('logout-link');
-            if (token) {
-                if (authLink) authLink.style.display = 'none';
-                if (logoutLink) logoutLink.style.display = 'inline-block';
-                // Also update nav username if needed
-            } else {
-                if (authLink) authLink.style.display = 'inline-block';
-                if (logoutLink) logoutLink.style.display = 'none';
-            }
+        function searchBooks() {
+            const query = document.getElementById('searchInput').value.trim();
+            if (query) window.location.href = `browse.html?search=${encodeURIComponent(query)}`;
+            else alert('Enter a search term');
         }
 
-        // ========== LOGOUT ==========
-        const logoutBtn = document.getElementById('logout-link');
-        if (logoutBtn) {
-            logoutBtn.addEventListener('click', (e) => {
-                e.preventDefault();
-                localStorage.removeItem('token');
-                localStorage.removeItem('userName');
-                localStorage.removeItem('userEmail');
-                updateAuthUI();
-                window.location.href = 'index.html';
-            });
-        }
-
-        // ========== SEARCH FUNCTIONALITY ==========
-        const searchInput = document.getElementById('search-input');
-        const searchBtn = document.getElementById('search-btn');
-
-        function performSearch() {
-            const query = searchInput.value.trim();
-            if (query) {
-                window.location.href = `browse.html?search=${encodeURIComponent(query)}`;
-            } else {
-                alert('Please enter a search term');
-            }
-        }
-
-        searchBtn.addEventListener('click', performSearch);
-        searchInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') performSearch();
-        });
-
-        // ========== LOAD FEATURED BOOKS (First 8 books from books.json) ==========
-        async function loadFeaturedBooks() {
-            const container = document.getElementById('featured-books-grid');
+        async function loadFeatured() {
+            const grid = document.getElementById('featuredGrid');
             try {
-                const response = await fetch('/books.json');
-                if (!response.ok) throw new Error('Failed to load');
-                let books = await response.json();
-                // Take first 8 books as featured
-                const featured = books.slice(0, 8);
-                container.innerHTML = featured.map(book => `
-                    <div class="book-card" onclick="window.location.href='book.html?id=${book.id}'">
-                        <img src="${book.cover_url || 'https://via.placeholder.com/200x260?text=No+Cover'}" 
-                             class="book-cover" 
-                             onerror="this.src='https://via.placeholder.com/200x260?text=No+Cover'">
-                        <div class="book-info">
-                            <div class="book-title">${escapeHtml(book.title).substring(0, 40)}${book.title.length > 40 ? '...' : ''}</div>
-                            <div class="book-author">${escapeHtml(book.author) || 'Unknown'}</div>
-                            <div class="book-price">${book.price === 0 ? 'FREE' : `₹${book.price}`}</div>
-                        </div>
+                const res = await fetch('/books.json');
+                const books = await res.json();
+                const featured = books.slice(0, 6);
+                grid.innerHTML = featured.map(book => `
+                <div class="book-card" onclick="location.href='book.html?id=${book.id}'">
+                    <img src="${book.cover_url || 'https://via.placeholder.com/180x220'}" class="book-cover" onerror="this.src='https://via.placeholder.com/180x220'">
+                    <div class="book-info">
+                        <div class="book-title">${book.title.substring(0, 35)}</div>
+                        <div class="book-author">${book.author || 'Unknown'}</div>
+                        <div class="book-price">${book.price === 0 ? 'FREE' : '₹' + book.price}</div>
                     </div>
-                `).join('');
-            } catch (error) {
-                console.error(error);
-                container.innerHTML = '<p style="color: red;">Failed to load featured books. Please refresh.</p>';
+                </div>
+            `).join('');
+            } catch (e) {
+                grid.innerHTML = '<p>Failed to load books. Refresh the page.</p>';
             }
         }
 
-        function escapeHtml(str) {
-            if (!str) return '';
-            return str.replace(/[&<>]/g, function (m) {
-                if (m === '&') return '&amp;';
-                if (m === '<') return '&lt;';
-                if (m === '>') return '&gt;';
-                return m;
-            });
-        }
-
-        // ========== INIT ==========
         document.addEventListener('DOMContentLoaded', () => {
             updateCartCount();
-            updateAuthUI();
-            loadFeaturedBooks();
+            loadFeatured();
         });
     </script>
 </body>
