@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Readera - Discover Your Next Read</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Lora:wght@400;500;600&family=Playfair+Display:wght@400;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .featured-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 25px;
+            margin-top: 30px;
+        }
+
+        .book-card {
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s;
+            text-decoration: none;
+            color: inherit;
+            display: block;
+        }
+
+        .book-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .book-cover {
+            width: 100%;
+            height: 250px;
+            object-fit: cover;
+        }
+
+        .book-info {
+            padding: 15px;
+        }
+
+        .book-title {
+            font-size: 1rem;
+            margin: 0 0 5px 0;
+        }
+
+        .book-author {
+            color: #666;
+            font-size: 0.85rem;
+        }
+
+        .book-price {
+            color: #8B4513;
+            font-weight: bold;
+            margin-top: 5px;
+        }
+
+        .hero {
+            background: linear-gradient(135deg, #8B4513, #D2691E);
+            color: white;
+            padding: 60px;
+            text-align: center;
+            border-radius: 12px;
+            margin-bottom: 40px;
+        }
+
+        .hero h1 {
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+        }
+
+        .search-box {
+            padding: 12px;
+            width: 100%;
+            max-width: 400px;
+            border: none;
+            border-radius: 8px;
+        }
+    </style>
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#8B4513">
+    <link rel="apple-touch-icon" href="/images/icon-192.png">
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/service-worker.js')
+                .then(() => console.log('Service Worker registered successfully!'))
+                .catch(err => console.log('Service Worker registration failed:', err));
+        }
+    </script>
+</head>
+
+<body>
+    <nav>
+        <div class="nav-brand"><a href="index.html">Readera</a></div>
+        <div class="nav-links">
+            <a href="index.html">Home</a>
+            <a href="browse.html">Browse Books</a>
+        </div>
+        <div class="nav-user">
+            <a href="cart.html" class="cart-link">Cart (<span id="cart-count">0</span>)</a>
+            <a href="auth.html" class="btn btn-primary">Login</a>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="hero">
+            <h1>Discover Your Next Read</h1>
+            <p>Explore thousands of eBooks across genres. Instant delivery to your digital library.</p>
+            <input type="text" id="searchInput" class="search-box" placeholder="Search by title, author..."
+                onkeypress="if(event.key==='Enter') searchBooks()">
+        </div>
+
+        <h2 class="section-title">Featured Books</h2>
+        <div id="featured-books" class="featured-grid">
+            <div class="loader">Loading...</div>
+        </div>
+    </div>
+
+    <script>
+        // Update cart count
+        function updateCartCount() {
+            const cart = JSON.parse(localStorage.getItem('cart') || '[]');
+            const countEl = document.getElementById('cart-count');
+            if (countEl) countEl.textContent = cart.length;
+        }
+
+        // Load featured books
+        async function loadFeaturedBooks() {
+            try {
+                const response = await fetch('/books.json');
+                const books = await response.json();
+                const featured = books.slice(0, 4); // First 4 books
+
+                const container = document.getElementById('featured-books');
+                container.innerHTML = featured.map(book => `
+                    <a href="book.html?id=${book.id}" class="book-card">
+                        <img src="${book.cover_url || 'https://via.placeholder.com/200x250?text=Book'}" class="book-cover" onerror="this.src='https://via.placeholder.com/200x250?text=Book'">
+                        <div class="book-info">
+                            <h3 class="book-title">${escapeHtml(book.title)}</h3>
+                            <p class="book-author">${escapeHtml(book.author || 'Unknown')}</p>
+                            <p class="book-price">${book.price === 0 ? 'FREE' : `₹${book.price}`}</p>
+                        </div>
+                    </a>
+                `).join('');
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('featured-books').innerHTML = '<p>Error loading books. Please refresh.</p>';
+            }
+        }
+
+        function escapeHtml(str) {
+            if (!str) return '';
+            return str.replace(/[&<>]/g, function (m) {
+                if (m === '&') return '&amp;';
+                if (m === '<') return '&lt;';
+                if (m === '>') return '&gt;';
+                return m;
+            });
+        }
+
+        function searchBooks() {
+            const query = document.getElementById('searchInput').value;
+            if (query) window.location.href = `browse.html?search=${encodeURIComponent(query)}`;
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            updateCartCount();
+            loadFeaturedBooks();
+        });
+    </script>
+</body>
+
+</html>

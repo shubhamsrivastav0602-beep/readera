@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shopping Cart - Readera</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Lora:wght@400;500;600&family=Playfair+Display:wght@400;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .cart-layout {
+            display: flex;
+            gap: 30px;
+            margin-top: 20px;
+        }
+
+        .cart-items {
+            flex-grow: 1;
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .cart-item {
+            display: flex;
+            gap: 20px;
+            padding: 20px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .cart-item:last-child {
+            border-bottom: none;
+        }
+
+        .ci-img {
+            width: 80px;
+            height: 120px;
+            object-fit: cover;
+            border-radius: 4px;
+        }
+
+        .ci-details {
+            flex-grow: 1;
+        }
+
+        .ci-title {
+            font-size: 1.2rem;
+            margin-bottom: 5px;
+        }
+
+        .ci-author {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .ci-price {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #8B4513;
+        }
+
+        .remove-btn {
+            color: #e74c3c;
+            background: none;
+            border: none;
+            cursor: pointer;
+            margin-top: 10px;
+            padding: 0;
+        }
+
+        .cart-summary {
+            width: 350px;
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            height: fit-content;
+        }
+
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+            font-size: 1.1rem;
+        }
+
+        .summary-total {
+            border-top: 2px solid #eee;
+            padding-top: 15px;
+            margin-top: 15px;
+            font-size: 1.3rem;
+            font-weight: bold;
+        }
+
+        .checkout-btn {
+            width: 100%;
+            margin-top: 20px;
+            padding: 15px;
+            background: #8B4513;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1.1rem;
+        }
+
+        .checkout-btn:hover {
+            background: #5a2d0c;
+        }
+
+        @media (max-width: 768px) {
+            .cart-layout {
+                flex-direction: column;
+            }
+
+            .cart-summary {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <nav>
+        <div class="nav-brand">
+            <a href="index.html">Readera</a>
+        </div>
+        <div class="nav-links">
+            <a href="index.html">Home</a>
+            <a href="browse.html">Browse Books</a>
+        </div>
+        <div class="nav-user">
+            <a href="cart.html" class="cart-link">Cart (<span id="cart-count">0</span>)</a>
+            <a href="auth.html" class="btn btn-primary">Login</a>
+        </div>
+    </nav>
+
+    <div class="container">
+        <h1 class="section-title">Shopping Cart</h1>
+
+        <div id="empty-cart-msg" style="display: none; text-align: center; padding: 40px;">
+            <h2>Your cart is empty.</h2>
+            <a href="browse.html" class="btn btn-primary">Browse Books</a>
+        </div>
+
+        <div class="cart-layout" id="cart-layout" style="display: none;">
+            <div class="cart-items" id="cart-items-container"></div>
+            <div class="cart-summary">
+                <h3>Order Summary</h3>
+                <div class="summary-row">
+                    <span>Subtotal</span>
+                    <span id="subtotal">₹0</span>
+                </div>
+                <div class="summary-row summary-total">
+                    <span>Total</span>
+                    <span id="total-price">₹0</span>
+                </div>
+                <button class="checkout-btn" id="checkout-btn">Proceed to Payment</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/api.js"></script>
+    <script>
+        // Simple cart functions (no CartService dependency)
+        function getCart() {
+            const cart = localStorage.getItem('cart');
+            if (cart) {
+                return JSON.parse(cart);
+            }
+            return [];
+        }
+
+        function saveCart(cart) {
+            localStorage.setItem('cart', JSON.stringify(cart));
+            updateCartCount();
+        }
+
+        function clearCart() {
+            localStorage.removeItem('cart');
+            updateCartCount();
+        }
+
+        function updateCartCount() {
+            const cart = getCart();
+            const countEl = document.getElementById('cart-count');
+            if (countEl) {
+                countEl.textContent = cart.length;
+            }
+        }
+
+        function removeFromCart(bookId) {
+            let cart = getCart();
+            const newCart = [];
+            for (let i = 0; i < cart.length; i++) {
+                if (cart[i].id !== bookId) {
+                    newCart.push(cart[i]);
+                }
+            }
+            saveCart(newCart);
+            renderCart();
+        }
+
+        function showToast(message, type) {
+            const toast = document.createElement('div');
+            toast.textContent = message;
+            toast.style.cssText = `
+                position: fixed;
+                bottom: 20px;
+                right: 20px;
+                background: ${type === 'error' ? '#e74c3c' : '#27ae60'};
+                color: white;
+                padding: 12px 20px;
+                border-radius: 8px;
+                z-index: 1000;
+            `;
+            document.body.appendChild(toast);
+            setTimeout(function () {
+                toast.remove();
+            }, 3000);
+        }
+
+        function escapeHtml(str) {
+            if (!str) return '';
+            return str.replace(/[&<>]/g, function (m) {
+                if (m === '&') return '&amp;';
+                if (m === '<') return '&lt;';
+                if (m === '>') return '&gt;';
+                return m;
+            });
+        }
+
+        function renderCart() {
+            const cart = getCart();
+            const layout = document.getElementById('cart-layout');
+            const emptyMsg = document.getElementById('empty-cart-msg');
+            const container = document.getElementById('cart-items-container');
+
+            if (cart.length === 0) {
+                layout.style.display = 'none';
+                emptyMsg.style.display = 'block';
+                return;
+            }
+
+            layout.style.display = 'flex';
+            emptyMsg.style.display = 'none';
+
+            let total = 0;
+            let html = '';
+
+            for (let i = 0; i < cart.length; i++) {
+                const item = cart[i];
+                total = total + (item.price || 0);
+                html = html + `
+                    <div class="cart-item">
+                        <img src="${item.cover_url || 'https://via.placeholder.com/80x120?text=Book'}" class="ci-img" onerror="this.src='https://via.placeholder.com/80x120?text=Book'">
+                        <div class="ci-details">
+                            <div class="ci-title">${escapeHtml(item.title)}</div>
+                            <div class="ci-author">${escapeHtml(item.author) || 'Unknown'}</div>
+                            <button class="remove-btn" onclick="removeFromCart(${item.id})">Remove</button>
+                        </div>
+                        <div class="ci-price">₹${item.price}</div>
+                    </div>
+                `;
+            }
+
+            container.innerHTML = html;
+            document.getElementById('subtotal').innerHTML = '₹' + total;
+            document.getElementById('total-price').innerHTML = '₹' + total;
+        }
+
+        // Checkout function
+        function handleCheckout() {
+            const cart = getCart();
+
+            if (cart.length === 0) {
+                showToast('Cart is empty', 'error');
+                return;
+            }
+
+            const token = localStorage.getItem('token');
+            if (!token) {
+                showToast('Please login first', 'error');
+                window.location.href = 'auth.html';
+                return;
+            }
+
+            let total = 0;
+            for (let i = 0; i < cart.length; i++) {
+                total = total + (cart[i].price || 0);
+            }
+
+            showToast('Checkout clicked! Total: ₹' + total, 'success');
+            // Add your payment logic here
+        }
+
+        // Initialize page
+        updateCartCount();
+        renderCart();
+
+        const checkoutBtn = document.getElementById('checkout-btn');
+        if (checkoutBtn) {
+            checkoutBtn.addEventListener('click', handleCheckout);
+        }
+    </script>
+
+    <!-- ✅ FOOTER ADDED HERE - Before </body> -->
+    <footer style="background: #2c1810; color: white; padding: 40px 0; margin-top: 60px;">
+        <div class="container">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 30px;">
+                <div>
+                    <h3 style="color: #D2691E;">Readera</h3>
+                    <p>Your digital library for thousands of eBooks across all genres.</p>
+                </div>
+                <div>
+                    <h4>Quick Links</h4>
+                    <ul style="list-style: none; padding: 0;">
+                        <li><a href="index.html" style="color: white; text-decoration: none;">Home</a></li>
+                        <li><a href="browse.html" style="color: white; text-decoration: none;">Browse Books</a></li>
+                        <li><a href="about.html" style="color: white; text-decoration: none;">About Us</a></li>
+                        <li><a href="contact.html" style="color: white; text-decoration: none;">Contact</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4>Legal</h4>
+                    <ul style="list-style: none; padding: 0;">
+                        <li><a href="privacy.html" style="color: white; text-decoration: none;">Privacy Policy</a></li>
+                        <li><a href="terms.html" style="color: white; text-decoration: none;">Terms of Service</a></li>
+                        <li><a href="disclaimer.html" style="color: white; text-decoration: none;">Disclaimer</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4>Connect</h4>
+                    <ul style="list-style: none; padding: 0;">
+                        <li><a href="contact.html" style="color: white; text-decoration: none;">📧 Email Us</a></li>
+                    </ul>
+                </div>
+            </div>
+            <hr style="border-color: #4a2c1a; margin: 20px 0;">
+            <p style="text-align: center;">&copy; 2025 Readera. All rights reserved.</p>
+        </div>
+    </footer>
+
+</body>
+
+</html>

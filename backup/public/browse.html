@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Browse Books - Readera</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Lora:wght@400;500;600&family=Playfair+Display:wght@400;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .page-layout {
+            display: flex;
+            gap: 30px;
+        }
+
+        .sidebar {
+            width: 250px;
+            flex-shrink: 0;
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            height: fit-content;
+        }
+
+        .main-content {
+            flex-grow: 1;
+        }
+
+        .filter-group {
+            margin-bottom: 20px;
+        }
+
+        .filter-group h4 {
+            margin-bottom: 15px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 5px;
+        }
+
+        .books-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 25px;
+        }
+
+        .book-card {
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s;
+            position: relative;
+        }
+
+        .book-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .book-card a {
+            text-decoration: none;
+            color: inherit;
+            display: block;
+        }
+
+        .book-cover {
+            width: 100%;
+            height: 260px;
+            object-fit: cover;
+        }
+
+        .book-info {
+            padding: 12px;
+        }
+
+        .book-title {
+            font-size: 1rem;
+            margin: 0 0 5px 0;
+            font-weight: 600;
+        }
+
+        .book-author {
+            color: #666;
+            font-size: 0.8rem;
+            margin: 0 0 5px 0;
+        }
+
+        .book-price {
+            color: #8B4513;
+            font-weight: bold;
+            margin: 5px 0;
+        }
+
+        .btn-add-cart {
+            width: calc(100% - 24px);
+            margin: 0 12px 12px 12px;
+            padding: 8px;
+            background: #8B4513;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: background 0.2s;
+        }
+
+        .btn-add-cart:hover {
+            background: #5a2d0c;
+        }
+
+        .free-badge {
+            background: #27ae60;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            display: inline-block;
+        }
+
+        .error {
+            text-align: center;
+            padding: 40px;
+            color: #e74c3c;
+        }
+
+        .loader {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+
+        select,
+        .form-control {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-family: inherit;
+        }
+
+        .btn-primary {
+            background: #8B4513;
+            color: white;
+            border: none;
+            padding: 10px;
+            border-radius: 6px;
+            cursor: pointer;
+            width: 100%;
+            font-size: 1rem;
+        }
+
+        .btn-secondary {
+            background: #ccc;
+            color: #333;
+            border: none;
+            padding: 10px;
+            border-radius: 6px;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        @media (max-width: 768px) {
+            .page-layout {
+                flex-direction: column;
+            }
+
+            .sidebar {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <nav>
+        <div class="nav-brand"><a href="index.html">Readera</a></div>
+        <div class="nav-links">
+            <a href="index.html">Home</a>
+            <a href="browse.html" style="font-weight: bold;">Browse Books</a>
+        </div>
+        <div class="nav-user">
+            <a href="cart.html" class="cart-link">Cart (<span id="cart-count">0</span>)</a>
+            <a href="auth.html" class="btn btn-primary">Login</a>
+        </div>
+    </nav>
+
+    <div class="container">
+        <h1 class="section-title">All Books</h1>
+
+        <div class="page-layout">
+            <aside class="sidebar">
+                <form id="filter-form">
+                    <div class="filter-group">
+                        <h4>Genre</h4>
+                        <select id="filter-genre">
+                            <option value="all">All Genres</option>
+                            <option value="Fiction">Fiction</option>
+                            <option value="Non-Fiction">Non-Fiction</option>
+                            <option value="Tech">Tech</option>
+                            <option value="Self-Help">Self-Help</option>
+                            <option value="Sci-Fi">Sci-Fi</option>
+                            <option value="Biography">Biography</option>
+                            <option value="Finance">Finance</option>
+                        </select>
+                    </div>
+
+                    <div class="filter-group">
+                        <h4>Sort By</h4>
+                        <select id="filter-sort">
+                            <option value="newest">Newest</option>
+                            <option value="price_asc">Price: Low to High</option>
+                            <option value="price_desc">Price: High to Low</option>
+                            <option value="title_asc">Title: A-Z</option>
+                        </select>
+                    </div>
+
+                    <button type="submit" class="btn-primary">Apply Filters</button>
+                    <button type="button" id="clear-filters" class="btn-secondary">Clear</button>
+                </form>
+            </aside>
+
+            <main class="main-content">
+                <div class="books-grid" id="books-grid">
+                    <div class="loader">Loading books...</div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script>
+        let allBooks = [];
+
+        // Update cart count
+        function updateCartCount() {
+            const cart = JSON.parse(localStorage.getItem('cart') || '[]');
+            const countEl = document.getElementById('cart-count');
+            if (countEl) countEl.textContent = cart.length;
+        }
+
+        // Add to cart function
+        function addToCart(book, event) {
+            if (event) event.stopPropagation();
+            let cart = JSON.parse(localStorage.getItem('cart') || '[]');
+            if (!cart.find(item => item.id === book.id)) {
+                cart.push(book);
+                localStorage.setItem('cart', JSON.stringify(cart));
+                showToast('✅ Added to cart!', 'success');
+                updateCartCount();
+            } else {
+                showToast('⚠️ Book already in cart!', 'error');
+            }
+        }
+
+        // Toast notification
+        function showToast(message, type) {
+            const toast = document.createElement('div');
+            toast.textContent = message;
+            toast.style.cssText = `
+                position: fixed;
+                bottom: 20px;
+                right: 20px;
+                background: ${type === 'error' ? '#e74c3c' : '#27ae60'};
+                color: white;
+                padding: 12px 20px;
+                border-radius: 8px;
+                z-index: 1000;
+                animation: fadeInOut 2s ease;
+            `;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 2000);
+        }
+
+        // Escape HTML
+        function escapeHtml(str) {
+            if (!str) return '';
+            return str.replace(/[&<>]/g, function (m) {
+                if (m === '&') return '&amp;';
+                if (m === '<') return '&lt;';
+                if (m === '>') return '&gt;';
+                return m;
+            });
+        }
+
+        // Render books grid
+        function renderBooks(books) {
+            const container = document.getElementById('books-grid');
+            if (!books || books.length === 0) {
+                container.innerHTML = '<p class="error">No books found.</p>';
+                return;
+            }
+
+            container.innerHTML = books.map(book => `
+                <div class="book-card">
+                    <a href="book.html?id=${book.id}">
+                        <img src="${book.cover_url || 'https://via.placeholder.com/220x260?text=Book+Cover'}" class="book-cover" onerror="this.src='https://via.placeholder.com/220x260?text=Book+Cover'">
+                        <div class="book-info">
+                            <h3 class="book-title">${escapeHtml(book.title)}</h3>
+                            <p class="book-author">${escapeHtml(book.author) || 'Unknown'}</p>
+                            <p class="book-price">${book.price === 0 ? '<span class="free-badge">FREE</span>' : `₹${book.price}`}</p>
+                        </div>
+                    </a>
+                    <button class="btn-add-cart" onclick="addToCart({id:${book.id}, title:'${escapeHtml(book.title)}', price:${book.price}}, event)">
+                        🛒 Add to Cart
+                    </button>
+                </div>
+            `).join('');
+        }
+
+        // Load books from JSON
+        async function loadBooks() {
+            const grid = document.getElementById('books-grid');
+            grid.innerHTML = '<div class="loader">Loading books...</div>';
+
+            try {
+                const response = await fetch('/books.json');
+                if (!response.ok) throw new Error('Failed to load');
+                allBooks = await response.json();
+                applyFiltersAndSort();
+            } catch (error) {
+                grid.innerHTML = '<p class="error">Error loading books. Please refresh.</p>';
+            }
+        }
+
+        // Apply filters and sort
+        function applyFiltersAndSort() {
+            let filtered = [...allBooks];
+
+            const genre = document.getElementById('filter-genre').value;
+            if (genre !== 'all') {
+                filtered = filtered.filter(book => book.genre === genre);
+            }
+
+            const sort = document.getElementById('filter-sort').value;
+            if (sort === 'price_asc') {
+                filtered.sort((a, b) => (a.price || 0) - (b.price || 0));
+            } else if (sort === 'price_desc') {
+                filtered.sort((a, b) => (b.price || 0) - (a.price || 0));
+            } else if (sort === 'title_asc') {
+                filtered.sort((a, b) => (a.title || '').localeCompare(b.title || ''));
+            }
+
+            renderBooks(filtered);
+        }
+
+        // Event listeners
+        document.getElementById('filter-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            applyFiltersAndSort();
+        });
+
+        document.getElementById('clear-filters').addEventListener('click', () => {
+            document.getElementById('filter-genre').value = 'all';
+            document.getElementById('filter-sort').value = 'newest';
+            applyFiltersAndSort();
+        });
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            updateCartCount();
+            loadBooks();
+        });
+    </script>
+    <!-- Footer -->
+    <footer style="background: #2c1810; color: white; padding: 40px 0; margin-top: 60px; width: 100%; clear: both;">
+        <div style="max-width: 1200px; margin: 0 auto; padding: 0 20px;">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 30px;">
+                <div>
+                    <h3 style="color: #D2691E; margin-bottom: 15px;">Readera</h3>
+                    <p style="line-height: 1.6;">Your digital library for thousands of eBooks across all genres.</p>
+                </div>
+                <div>
+                    <h4 style="margin-bottom: 15px;">Quick Links</h4>
+                    <ul style="list-style: none; padding: 0; margin: 0;">
+                        <li style="margin-bottom: 8px;"><a href="index.html"
+                                style="color: white; text-decoration: none;">Home</a></li>
+                        <li style="margin-bottom: 8px;"><a href="browse.html"
+                                style="color: white; text-decoration: none;">Browse Books</a></li>
+                        <li style="margin-bottom: 8px;"><a href="about.html"
+                                style="color: white; text-decoration: none;">About Us</a></li>
+                        <li style="margin-bottom: 8px;"><a href="contact.html"
+                                style="color: white; text-decoration: none;">Contact</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 style="margin-bottom: 15px;">Legal</h4>
+                    <ul style="list-style: none; padding: 0; margin: 0;">
+                        <li style="margin-bottom: 8px;"><a href="privacy.html"
+                                style="color: white; text-decoration: none;">Privacy Policy</a></li>
+                        <li style="margin-bottom: 8px;"><a href="terms.html"
+                                style="color: white; text-decoration: none;">Terms of Service</a></li>
+                        <li style="margin-bottom: 8px;"><a href="disclaimer.html"
+                                style="color: white; text-decoration: none;">Disclaimer</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 style="margin-bottom: 15px;">Connect</h4>
+                    <ul style="list-style: none; padding: 0; margin: 0;">
+                        <li style="margin-bottom: 8px;"><a href="contact.html"
+                                style="color: white; text-decoration: none;">📧 Email Us</a></li>
+                    </ul>
+                </div>
+            </div>
+            <hr style="border-color: #4a2c1a; margin: 30px 0 20px;">
+            <p style="text-align: center; margin: 0;">&copy; 2025 Readera. All rights reserved.</p>
+        </div>
+    </footer>
+
+
+
+</body>
+
+</html>

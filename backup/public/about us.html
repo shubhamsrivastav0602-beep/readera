@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About Us - Readera</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Lora:wght@400;500;600&family=Playfair+Display:wght@400;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .about-section {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 40px 0;
+        }
+
+        .about-section h1 {
+            font-family: 'Playfair Display', serif;
+            color: #8B4513;
+            margin-bottom: 20px;
+        }
+
+        .about-section p {
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+
+        .mission-box {
+            background: #f9f5f0;
+            padding: 30px;
+            border-radius: 12px;
+            margin: 30px 0;
+            border-left: 4px solid #8B4513;
+        }
+    </style>
+</head>
+
+<body>
+    <nav>
+        <div class="nav-brand"><a href="index.html">Readera</a></div>
+        <div class="nav-links">
+            <a href="index.html">Home</a>
+            <a href="browse.html">Browse Books</a>
+            <a href="about.html">About</a>
+            <a href="contact.html">Contact</a>
+        </div>
+        <div class="nav-user">
+            <a href="cart.html">Cart (<span id="cart-count">0</span>)</a>
+            <a href="auth.html">Login</a>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="about-section">
+            <h1>About Readera</h1>
+
+            <p><strong>Readera</strong> is a digital library platform created to make reading accessible, affordable,
+                and enjoyable for everyone.</p>
+
+            <div class="mission-box">
+                <h3>📖 Our Mission</h3>
+                <p>To democratize access to knowledge by providing a vast collection of eBooks across all genres — from
+                    fiction and self-help to academic textbooks and rare manuscripts.</p>
+            </div>
+
+            <h2>What We Offer</h2>
+            <ul>
+                <li>📚 <strong>11,000+ eBooks</strong> - Constantly growing library</li>
+                <li>🔍 <strong>Smart Search & Filters</strong> - Find your next read instantly</li>
+                <li>📱 <strong>Read Anywhere</strong> - Mobile-friendly PWA app</li>
+                <li>💰 <strong>Affordable Pricing</strong> - Free books + paid premium titles</li>
+            </ul>
+
+            <h2>Our Story</h2>
+            <p>Readera started as a small project to help students access NCERT textbooks online. Today, we've grown
+                into a platform serving thousands of readers worldwide, with books in multiple languages and genres.</p>
+
+            <h2>Meet the Team</h2>
+            <p>We're a passionate team of developers, designers, and book lovers committed to building the best reading
+                experience on the web.</p>
+        </div>
+    </div>
+
+    <script src="js/api.js"></script>
+    <script>function updateCartCount() { const e = JSON.parse(localStorage.getItem("cart") || "[]"); document.getElementById("cart-count") && (document.getElementById("cart-count").textContent = e.length) } document.addEventListener("DOMContentLoaded", updateCartCount);</script>
+
+    <!-- ✅ FOOTER ADDED HERE - Before </body> -->
+    <footer style="background: #2c1810; color: white; padding: 40px 0; margin-top: 60px;">
+        <div class="container">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 30px;">
+                <div>
+                    <h3 style="color: #D2691E;">Readera</h3>
+                    <p>Your digital library for thousands of eBooks across all genres.</p>
+                </div>
+                <div>
+                    <h4>Quick Links</h4>
+                    <ul style="list-style: none; padding: 0;">
+                        <li><a href="index.html" style="color: white; text-decoration: none;">Home</a></li>
+                        <li><a href="browse.html" style="color: white; text-decoration: none;">Browse Books</a></li>
+                        <li><a href="about.html" style="color: white; text-decoration: none;">About Us</a></li>
+                        <li><a href="contact.html" style="color: white; text-decoration: none;">Contact</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4>Legal</h4>
+                    <ul style="list-style: none; padding: 0;">
+                        <li><a href="privacy.html" style="color: white; text-decoration: none;">Privacy Policy</a></li>
+                        <li><a href="terms.html" style="color: white; text-decoration: none;">Terms of Service</a></li>
+                        <li><a href="disclaimer.html" style="color: white; text-decoration: none;">Disclaimer</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4>Connect</h4>
+                    <ul style="list-style: none; padding: 0;">
+                        <li><a href="contact.html" style="color: white; text-decoration: none;">📧 Email Us</a></li>
+                    </ul>
+                </div>
+            </div>
+            <hr style="border-color: #4a2c1a; margin: 20px 0;">
+            <p style="text-align: center;">&copy; 2025 Readera. All rights reserved.</p>
+        </div>
+    </footer>
+
+</body>
+
+</html>
