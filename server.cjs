@@ -4,17 +4,62 @@ const path = require('path');
 const dotenv = require('dotenv');
 const { createClient } = require('@libsql/client');
 const rateLimit = require('express-rate-limit');
+const fs = require('fs');
+
+function loadEnvUtf16IfNeeded() {
+    try {
+        const envPath = path.join(__dirname, '.env');
+        if (!fs.existsSync(envPath)) return;
+
+        // If dotenv already loaded at least one expected key, skip.
+        if (process.env.RAZORPAY_KEY_ID || process.env.TURSO_DATABASE_URL) return;
+
+        const raw = fs.readFileSync(envPath);
+        // Heuristic: UTF-16 LE typically has lots of NUL bytes.
+        let nul = 0;
+        for (let i = 1; i < Math.min(raw.length, 256); i += 2) {
+            if (raw[i] === 0x00) nul++;
+        }
+        if (nul < 8) return;
+
+        const text = raw.toString('utf16le').replace(/^\uFEFF/, '');
+        text.split(/\r?\n/).forEach((line) => {
+            const trimmed = line.trim();
+            if (!trimmed || trimmed.startsWith('#')) return;
+            const eq = trimmed.indexOf('=');
+            if (eq <= 0) return;
+            const key = trimmed.slice(0, eq).trim();
+            const val = trimmed.slice(eq + 1).trim();
+            if (!process.env[key]) process.env[key] = val;
+        });
+    } catch (e) {
+        console.warn('[env] utf16 loader skipped:', e.message);
+    }
+}
 
 dotenv.config();
+loadEnvUtf16IfNeeded();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// ✅ TURSO DATABASE
-const db = createClient({
-    url: process.env.TURSO_DATABASE_URL,
-    authToken: process.env.TURSO_AUTH_TOKEN,
-});
+function resolveDbConfig() {
+    const url = (process.env.TURSO_DATABASE_URL || '').trim();
+    const authToken = (process.env.TURSO_AUTH_TOKEN || '').trim();
+
+    // Local/dev fallback if Turso URL not configured
+    if (!url) {
+        return {
+            url: `file:${path.join(__dirname, 'database.sqlite')}`,
+        };
+    }
+
+    // Turso config
+    return authToken ? { url, authToken } : { url };
+}
+
+const dbConfig = resolveDbConfig();
+const db = createClient(dbConfig);
 
 async function runMigrations() {
     const statements = [
@@ -94,6 +139,6 @@ app.get('*', (req, res) => {
     }
     app.listen(PORT, () => {
         console.log(`🚀 Server running on http://localhost:${PORT}`);
-        console.log(`📡 Using Turso database`);
+        console.log(dbConfig.url.startsWith('file:') ? '📡 Using local SQLite database' : '📡 Using Turso database');
     });
 })();
