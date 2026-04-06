@@ -85,19 +85,7 @@ async function fetchJson(url) {
   throw lastErr || new Error('Fetch failed');
 }
 
-async function fetchPreview(url, maxChars = 400) {
-  try {
-    const ctrl = new AbortController();
-    const timer = setTimeout(() => ctrl.abort(), 20000);
-    const res = await fetch(url, { signal: ctrl.signal, headers: { 'User-Agent': 'ReaderaSync/1.0' } })
-      .finally(() => clearTimeout(timer));
-    if (!res.ok) return '';
-    const text = await res.text();
-    return String(text || '').slice(0, maxChars);
-  } catch {
-    return '';
-  }
-}
+// For speed + reliability at large scale, preview comes from description (first 400 chars).
 
 async function poolMap(items, concurrency, mapper) {
   const out = new Array(items.length);
@@ -153,12 +141,21 @@ async function main() {
   const limit = Math.min(Number(process.argv[2] || 50) || 50, 1000);
   // Accept "hindi" (default) or "strict-1000" across Hindi+English+self-help
   const mode = String(process.argv[3] || 'hindi').toLowerCase();
+  const defaultMaxPages = mode === 'strict-1000' ? 200 : 50;
+  const maxPages = Math.min(Math.max(Number(process.argv[4] || defaultMaxPages) || defaultMaxPages, 1), 500);
+  console.log(`[sync] start mode=${mode} limit=${limit} maxPages=${maxPages}`);
+  const strictRightsClause =
+    '(licenseurl:(creativecommons.org*) OR rights:(*public domain*) OR rights:(*creative commons*) OR rights:(*creativecommons*))';
+
   const queries =
     mode === 'strict-1000'
       ? [
-          '(collection:booksbylanguage_hindi) AND mediatype:texts',
-          '(collection:opensource) AND mediatype:texts AND language:English',
-          '(collection:opensource) AND mediatype:texts AND language:English AND (subject:\"self help\" OR subject:\"self-help\" OR subject:productivity OR subject:motivation)',
+          `((collection:booksbylanguage_hindi) AND mediatype:texts) AND ${strictRightsClause}`,
+          `((collection:opensource) AND mediatype:texts AND (language:Hindi OR language:hin)) AND ${strictRightsClause}`,
+          `((collection:opensource) AND mediatype:texts AND language:English) AND ${strictRightsClause}`,
+          `((collection:opensource) AND mediatype:texts AND language:English AND (subject:\"self help\" OR subject:\"self-help\" OR subject:productivity OR subject:motivation)) AND ${strictRightsClause}`,
+          `((collection:americana OR collection:toronto OR collection:favoreads) AND mediatype:texts AND language:English) AND ${strictRightsClause}`,
+          `((collection:opensource) AND mediatype:texts AND language:English AND (subject:\"fiction\" OR subject:\"literature\" OR subject:\"poetry\")) AND ${strictRightsClause}`,
         ]
       : ['(collection:booksbylanguage_hindi) AND mediatype:texts'];
   const fl = [
@@ -177,13 +174,23 @@ async function main() {
     'Imported from Internet Archive where rights indicate Public Domain or Creative Commons. Verify rights/license before redistribution.';
 
   let idCounter = 900000; // avoid clashing with local DB ids
+  const seen = new Set();
+
+  function writeSnapshot() {
+    try {
+      fs.writeFileSync(OUT_PATH, JSON.stringify(out, null, 2), 'utf8');
+    } catch {
+      // ignore
+    }
+  }
 
   for (const qRaw of queries) {
     if (out.length >= limit) break;
     let page = 1;
-    while (out.length < limit && page <= 50) {
+    while (out.length < limit && page <= maxPages) {
       const q = encodeURIComponent(qRaw);
       const searchUrl = `${IA_ADVANCED_SEARCH}?q=${q}&${fl}&rows=100&page=${page}&output=json`;
+      console.log(`[sync] fetching search page ${page}…`);
       let searchJson;
       try {
         searchJson = await fetchJson(searchUrl);
@@ -195,13 +202,16 @@ async function main() {
       const docs = (searchJson?.response?.docs || []);
       if (!docs.length) break;
 
-      // Process this page with limited concurrency for speed
+      // Process this page with limited concurrency; cap batch so we don't fetch metadata for 120 items when we only need a few.
       const remaining = Math.max(0, limit - out.length);
-      const batch = docs.slice(0, Math.min(docs.length, Math.max(remaining * 2, 120)));
+      const batchCap = Math.min(100, Math.max(remaining * 3, 24));
+      const batch = docs.slice(0, Math.min(docs.length, batchCap));
 
-      const results = await poolMap(batch, 8, async (d) => {
+      const results = await poolMap(batch, 10, async (d) => {
         const identifier = d.identifier;
         if (!identifier) return null;
+        if (seen.has(identifier)) return null;
+        seen.add(identifier);
 
         let md;
         try {
@@ -214,25 +224,34 @@ async function main() {
         const { pdfFile, textFile } = pickIaFiles(md);
         if (!pdfFile || !textFile) return null;
 
-        const external_text_url = `https://archive.org/download/${identifier}/${encodeURIComponent(textFile)}`;
-        const preview_content = await fetchPreview(external_text_url, 400);
+        const preview = safeText(first(d.description, '')).slice(0, 400);
 
         // reserve id only for accepted books
         const id = idCounter++;
-        return buildBook(d, identifier, md, pdfFile, textFile, preview_content, mode, legal_notice, id);
+        return buildBook(d, identifier, md, pdfFile, textFile, preview, mode, legal_notice, id);
       });
 
+      let addedThisPage = 0;
       for (const b of results) {
         if (!b) continue;
         out.push(b);
+        addedThisPage++;
         if (out.length >= limit) break;
       }
 
+      console.log(
+        `[sync] q#${queries.indexOf(qRaw) + 1} page ${page} docs=${docs.length} batch=${batch.length} +${addedThisPage} → total ${out.length}/${limit}`,
+      );
+
+      if (out.length && out.length % 10 === 0) {
+        console.log(`[sync] snapshot → ${out.length} books`);
+        writeSnapshot();
+      }
       page++;
     }
   }
 
-  fs.writeFileSync(OUT_PATH, JSON.stringify(out, null, 2), 'utf8');
+  writeSnapshot();
   console.log(`Wrote ${out.length} books → ${OUT_PATH}`);
 }
 

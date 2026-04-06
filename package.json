@@ -5,7 +5,8 @@
   "main": "server.cjs",
   "scripts": {
     "start": "node server.cjs",
-    "dev": "node server.cjs"
+    "dev": "node server.cjs",
+    "sync:books:strict": "node scripts/sync-ia-hindi-books.cjs 1000 strict-1000 250"
   },
   "dependencies": {
     "@libsql/client": "^0.3.0",
