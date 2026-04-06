@@ -10,7 +10,9 @@ if (!apiKey) {
 
 const client = new OpenAI({
     apiKey,
-    ...(process.env.OPENAI_BASE_URL ? { baseURL: process.env.OPENAI_BASE_URL } : {}),
+    const client = new OpenAI({
+        apiKey: apikey,
+    });
 });
 
 const booksPath = 'public/books.json';
