@@ -4,7 +4,8 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const { authenticateToken } = require('../middleware/auth');
 
-const BCRYPT_ROUNDS = 12;
+// Slightly relaxed for smoother local/test usage
+const BCRYPT_ROUNDS = 10;
 
 function getJwtSecret() {
     const s = process.env.JWT_SECRET;
@@ -16,11 +17,8 @@ function getJwtSecret() {
 }
 
 function validatePassword(password) {
-    if (!password || password.length < 8) {
-        return 'Password must be at least 8 characters long.';
-    }
-    if (!/[A-Za-z]/.test(password) || !/[0-9]/.test(password)) {
-        return 'Password must include at least one letter and one number.';
+    if (!password || password.length < 6) {
+        return 'Password must be at least 6 characters long.';
     }
     if (password.length > 128) {
         return 'Password is too long.';
@@ -28,14 +26,7 @@ function validatePassword(password) {
     return null;
 }
 
-function normalizePhone(input) {
-    if (!input || typeof input !== 'string') return null;
-    const digits = input.replace(/\D/g, '');
-    if (digits.length === 12 && digits.startsWith('91')) return digits.slice(2);
-    if (digits.length === 11 && digits.startsWith('0')) return digits.slice(1);
-    if (digits.length === 10) return digits;
-    return null;
-}
+// Phone-based login is no longer used; signup is email-only.
 
 function normalizeEmail(email) {
     if (!email || typeof email !== 'string') return '';
@@ -44,17 +35,12 @@ function normalizeEmail(email) {
 
 function parseLoginIdentifier(raw) {
     const t = (raw || '').trim();
-    if (!t) return { error: 'Enter your email or mobile number.' };
-    if (t.includes('@')) {
-        const email = normalizeEmail(t);
-        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-            return { error: 'Enter a valid email address.' };
-        }
-        return { type: 'email', value: email };
+    if (!t) return { error: 'Enter your email address.' };
+    const email = normalizeEmail(t);
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        return { error: 'Enter a valid email address.' };
     }
-    const phone = normalizePhone(t);
-    if (!phone) return { error: 'Enter a valid 10-digit mobile number (or use email).' };
-    return { type: 'phone', value: phone };
+    return { type: 'email', value: email };
 }
 
 function rowToUser(row) {
@@ -82,7 +68,7 @@ function signUserToken(userRow) {
 }
 
 router.post('/register', async (req, res) => {
-    const { name, email, password, phone: phoneRaw } = req.body;
+    const { name, email, password } = req.body;
 
     const pwdErr = validatePassword(password);
     if (pwdErr) return res.status(400).json({ success: false, error: pwdErr });
@@ -97,21 +83,12 @@ router.post('/register', async (req, res) => {
         return res.status(400).json({ success: false, error: 'Enter a valid email address.' });
     }
 
-    const phone = normalizePhone(phoneRaw);
-    // Phone is optional for signup
-    if (phoneRaw && phoneRaw.trim() !== '' && !phone) {
-        return res.status(400).json({
-            success: false,
-            error: 'Enter a valid 10-digit Indian mobile number or leave empty.',
-        });
-    }
-
     try {
         const hashedPassword = await bcrypt.hash(password, BCRYPT_ROUNDS);
 
         await req.db.execute({
             sql: `INSERT INTO users (name, email, phone, password_hash) VALUES (?, ?, ?, ?)`,
-            args: [cleanName, cleanEmail, phone, hashedPassword],
+            args: [cleanName, cleanEmail, null, hashedPassword],
         });
 
         const result = await req.db.execute({
@@ -130,11 +107,8 @@ router.post('/register', async (req, res) => {
     } catch (error) {
         console.error('register', error);
         const msg = String(error.message || error);
-        if (/unique|constraint|UNIQUE/i.test(msg)) {
-            if (/email/i.test(msg)) {
-                return res.status(409).json({ success: false, error: 'This email is already registered.' });
-            }
-            return res.status(409).json({ success: false, error: 'This mobile number is already registered.' });
+        if (/unique|constraint|UNIQUE/i.test(msg) && /email/i.test(msg)) {
+            return res.status(409).json({ success: false, error: 'This email is already registered.' });
         }
         res.status(500).json({ success: false, error: 'Registration failed. Please try again.' });
     }
@@ -154,11 +128,7 @@ router.post('/login', async (req, res) => {
     }
 
     try {
-        const sql =
-            parsed.type === 'email'
-                ? `SELECT id, name, email, phone, password_hash, created_at FROM users WHERE email = ?`
-                : `SELECT id, name, email, phone, password_hash, created_at FROM users WHERE phone = ?`;
-
+        const sql = `SELECT id, name, email, phone, password_hash, created_at FROM users WHERE email = ?`;
         const result = await req.db.execute({
             sql,
             args: [parsed.value],

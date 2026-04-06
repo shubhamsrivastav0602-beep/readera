@@ -186,6 +186,7 @@
     </div>
 
     <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    <script src="js/api.js"></script>
     <script src="js/main.js"></script>
     <script>
         function getCart() {
@@ -279,37 +280,23 @@
                 return;
             }
 
-            let total = 0;
-            const bookIds = [];
-            for (let i = 0; i < cart.length; i++) {
-                total += (cart[i].price || 0);
-                bookIds.push(cart[i].id);
-            }
-
             try {
-                const pingRes = await fetch('/api/ping');
-                const pingData = await pingRes.json().catch(() => ({}));
-                console.log('API ping:', pingData);
+                let total = 0;
+                const bookIds = [];
+                for (let i = 0; i < cart.length; i++) {
+                    total += (cart[i].price || 0);
+                    bookIds.push(cart[i].id);
+                }
 
-                const orderRes = await fetch('/api/create-order', {
+                const order = await fetchAPI('/orders/create', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ amount: total, bookIds })
                 });
 
-                if (!orderRes.ok) {
-                    const errorText = await orderRes.text();
-                    console.error('Order creation failed:', errorText);
-                    throw new Error(`HTTP ${orderRes.status}: ${errorText.substring(0, 120)}`);
-                }
-
-                const order = await orderRes.json();
-                if (!order.id) throw new Error("Order creation failed");
-
                 const options = {
-                    key: 'rzp_test_SZWU44Pk0GG1I2',
+                    key: 'rzp_test_SZWU44Pk0GG1I2', // Razorpay test key
                     amount: order.amount,
-                    currency: order.currency,
+                    currency: order.currency || 'INR',
                     name: 'Readera',
                     description: `Purchase of ${cart.length} book(s)`,
                     order_id: order.id,

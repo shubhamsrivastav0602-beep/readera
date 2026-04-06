@@ -238,7 +238,7 @@
         <div class="auth-card">
             <div class="auth-card-head">
                 <h1>Readera</h1>
-                <p>Sign in with email or mobile. New users can create a secure account in seconds.</p>
+                <p>Sign in with your email. New users can create an account in seconds.</p>
             </div>
             <div class="auth-tabs">
                 <button type="button" class="auth-tab active" data-tab="login">Log in</button>
@@ -287,20 +287,11 @@
                         </div>
                     </div>
                     <div class="form-group">
-                        <label for="su-phone">Mobile number (optional)</label>
-                        <div class="input-wrap">
-                            <i class="fas fa-phone" aria-hidden="true"></i>
-                            <input type="tel" id="su-phone" autocomplete="tel" placeholder="10-digit mobile (optional)"
-                                inputmode="numeric" maxlength="14">
-                        </div>
-                        <p class="hint">We use this for account recovery and important alerts. Indian numbers: 10 digits (optional +91).</p>
-                    </div>
-                    <div class="form-group">
                         <label for="su-password">Password</label>
                         <div class="input-wrap">
                             <i class="fas fa-lock" aria-hidden="true"></i>
                             <input type="password" id="su-password" required autocomplete="new-password"
-                                placeholder="Min 8 characters, letters + numbers">
+                                placeholder="At least 6 characters">
                             <button type="button" class="pw-toggle" data-target="su-password" aria-label="Show password"><i
                                     class="fas fa-eye"></i></button>
                         </div>
@@ -366,13 +357,9 @@
         const strengthEl = document.getElementById('pw-strength');
         suPw.addEventListener('input', () => {
             const p = suPw.value;
-            let score = 0;
-            if (p.length >= 8) score++;
-            if (/[A-Za-z]/.test(p) && /[0-9]/.test(p)) score++;
-            if (p.length >= 12) score++;
-            const pct = Math.min(100, score * 33);
+            const pct = Math.max(0, Math.min(100, (p.length / 12) * 100));
             strengthEl.style.width = pct + '%';
-            strengthEl.style.background = pct < 34 ? '#ef4444' : pct < 67 ? '#f59e0b' : '#10b981';
+            strengthEl.style.background = pct < 40 ? '#ef4444' : pct < 70 ? '#f59e0b' : '#10b981';
         });
 
         document.getElementById('form-login').addEventListener('submit', async (e) => {
@@ -408,7 +395,6 @@
             clearMsg('signup-msg');
             const name = document.getElementById('su-name').value.trim();
             const email = document.getElementById('su-email').value.trim();
-            const phone = document.getElementById('su-phone').value.trim();
             const password = document.getElementById('su-password').value;
             const password2 = document.getElementById('su-password2').value;
             if (password !== password2) {
@@ -421,7 +407,7 @@
                 const res = await fetch('/api/auth/register', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ name, email, password, phone }),
+                    body: JSON.stringify({ name, email, password }),
                 });
                 const data = await res.json().catch(() => ({}));
                 if (!res.ok) {
