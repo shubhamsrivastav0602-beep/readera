@@ -348,6 +348,9 @@
             <button class="admin-tab" data-tab="manage-books">
                 <i class="fas fa-books"></i> Manage Books
             </button>
+            <button class="admin-tab" data-tab="internet-archive">
+                <i class="fas fa-cloud-download-alt"></i> Internet Archive Import
+            </button>
             <button class="admin-tab" data-tab="orders">
                 <i class="fas fa-shopping-cart"></i> Orders
             </button>
@@ -461,6 +464,15 @@
                                 <input type="file" id="book-pdf" accept="application/pdf" style="display: none;" required>
                             </div>
                         </div>
+                        <div class="form-group">
+                            <label>Book Text (TXT) Optional</label>
+                            <div class="file-upload" id="text-upload">
+                                <i class="fas fa-file-alt" style="font-size: 2rem; color: #64748b; margin-bottom: 0.5rem;"></i>
+                                <p>Click to upload or drag and drop</p>
+                                <p style="font-size: 0.875rem; color: #64748b;">TXT up to 20MB</p>
+                                <input type="file" id="book-text" accept=".txt,text/plain" style="display: none;">
+                            </div>
+                        </div>
                     </div>
 
                     <div style="display: flex; gap: 1rem; margin-top: 2rem;">
@@ -472,6 +484,24 @@
                         </button>
                     </div>
                 </form>
+            </div>
+        </div>
+
+        <!-- Internet Archive Import Panel -->
+        <div id="internet-archive" class="admin-panel">
+            <div class="book-form">
+                <h2 style="margin-bottom: 0.6rem; color: #0a2540;">Internet Archive Hindi Import</h2>
+                <p style="color:#475569; line-height:1.5; margin-bottom:1rem;">
+                    Import first <strong>50</strong> Hindi books from Internet Archive where both PDF and TXT are available.
+                    Imported books are added as free/open titles for browse.
+                </p>
+                <div style="padding:0.85rem 1rem; border-radius:8px; background:#fffbeb; border:1px solid #fde68a; color:#92400e; margin-bottom:1rem;">
+                    <strong>Legal notice:</strong> Only potentially open/free items are imported. Please still verify rights/license on source page before commercial redistribution.
+                </div>
+                <button id="import-ia-btn" class="btn btn-success">
+                    <i class="fas fa-download"></i> Import First 50 Hindi Books
+                </button>
+                <pre id="ia-import-result" style="margin-top:1rem; white-space:pre-wrap; background:#0f172a; color:#e2e8f0; padding:1rem; border-radius:8px; display:none;"></pre>
             </div>
         </div>
 

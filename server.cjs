@@ -66,9 +66,17 @@ async function runMigrations() {
         'ALTER TABLE users ADD COLUMN phone TEXT',
         'CREATE UNIQUE INDEX IF NOT EXISTS idx_users_phone ON users(phone) WHERE phone IS NOT NULL',
         'ALTER TABLE books ADD COLUMN pdf_url TEXT',
+        'ALTER TABLE books ADD COLUMN text_url TEXT',
+        'ALTER TABLE books ADD COLUMN full_content_text TEXT',
         'ALTER TABLE books ADD COLUMN publisher TEXT',
         'ALTER TABLE books ADD COLUMN pages INTEGER',
         'ALTER TABLE books ADD COLUMN language TEXT DEFAULT "English"',
+        'ALTER TABLE books ADD COLUMN source_name TEXT',
+        'ALTER TABLE books ADD COLUMN source_url TEXT',
+        'ALTER TABLE books ADD COLUMN legal_notice TEXT',
+        'ALTER TABLE books ADD COLUMN external_pdf_url TEXT',
+        'ALTER TABLE books ADD COLUMN external_text_url TEXT',
+        'ALTER TABLE books ADD COLUMN is_public_domain INTEGER DEFAULT 0',
         'ALTER TABLE orders ADD COLUMN razorpay_payment_id TEXT',
         'ALTER TABLE orders ADD COLUMN updated_at DATETIME DEFAULT CURRENT_TIMESTAMP'
     ];

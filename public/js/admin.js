@@ -12,6 +12,7 @@ class AdminPortal {
         this.setupTabs();
         this.setupFileUploads();
         this.setupForms();
+        this.setupImportActions();
         this.checkAuth();
         this.loadDashboard();
     }
@@ -81,8 +82,16 @@ class AdminPortal {
         pdfUpload.addEventListener('click', () => pdfInput.click());
         pdfInput.addEventListener('change', (e) => this.handleFileSelect(e, 'pdf'));
 
+        // TXT upload (optional)
+        const textUpload = document.getElementById('text-upload');
+        const textInput = document.getElementById('book-text');
+        if (textUpload && textInput) {
+            textUpload.addEventListener('click', () => textInput.click());
+            textInput.addEventListener('change', (e) => this.handleFileSelect(e, 'text'));
+        }
+
         // Drag and drop
-        [coverUpload, pdfUpload].forEach(element => {
+        [coverUpload, pdfUpload, textUpload].filter(Boolean).forEach(element => {
             element.addEventListener('dragover', (e) => {
                 e.preventDefault();
                 element.classList.add('dragover');
@@ -99,7 +108,10 @@ class AdminPortal {
                 if (files.length > 0) {
                     const input = element.querySelector('input[type="file"]');
                     input.files = files;
-                    this.handleFileSelect({ target: input }, element.id.includes('cover') ? 'cover' : 'pdf');
+                    let kind = 'pdf';
+                    if (element.id.includes('cover')) kind = 'cover';
+                    if (element.id.includes('text')) kind = 'text';
+                    this.handleFileSelect({ target: input }, kind);
                 }
             });
         });
@@ -122,13 +134,25 @@ class AdminPortal {
                 return;
             }
         } else {
-            if (file.type !== 'application/pdf') {
-                this.showMessage('Please select a PDF file', 'error');
-                return;
-            }
-            if (file.size > 50 * 1024 * 1024) {
-                this.showMessage('PDF size should be less than 50MB', 'error');
-                return;
+            if (type === 'pdf') {
+                if (file.type !== 'application/pdf') {
+                    this.showMessage('Please select a PDF file', 'error');
+                    return;
+                }
+                if (file.size > 50 * 1024 * 1024) {
+                    this.showMessage('PDF size should be less than 50MB', 'error');
+                    return;
+                }
+            } else if (type === 'text') {
+                const isTxt = file.type === 'text/plain' || file.name.toLowerCase().endsWith('.txt');
+                if (!isTxt) {
+                    this.showMessage('Please select a TXT file', 'error');
+                    return;
+                }
+                if (file.size > 20 * 1024 * 1024) {
+                    this.showMessage('TXT size should be less than 20MB', 'error');
+                    return;
+                }
             }
         }
 
@@ -152,6 +176,40 @@ class AdminPortal {
         document.getElementById('add-book-form').addEventListener('submit', (e) => {
             e.preventDefault();
             this.addBook();
+        });
+    }
+
+    setupImportActions() {
+        const btn = document.getElementById('import-ia-btn');
+        if (!btn) return;
+        btn.addEventListener('click', async () => {
+            const out = document.getElementById('ia-import-result');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Importing...';
+            if (out) {
+                out.style.display = 'block';
+                out.textContent = 'Starting import from Internet Archive...';
+            }
+            try {
+                const res = await fetch('/api/admin/import/internet-archive-hindi', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                    },
+                    body: JSON.stringify({ limit: 50 }),
+                });
+                const data = await res.json().catch(() => ({}));
+                if (!res.ok) throw new Error(data.error || 'Import failed');
+                this.showMessage(`Import complete: ${data.importedCount} imported, ${data.skippedCount} skipped`, 'success');
+                if (out) out.textContent = JSON.stringify(data, null, 2);
+            } catch (err) {
+                this.showMessage(err.message || 'Import failed', 'error');
+                if (out) out.textContent = `Error: ${err.message || 'Import failed'}`;
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-download"></i> Import First 50 Hindi Books';
+            }
         });
     }
 
@@ -316,6 +374,7 @@ class AdminPortal {
         // Validate required files
         const coverFile = document.getElementById('book-cover').files[0];
         const pdfFile = document.getElementById('book-pdf').files[0];
+        const textFile = document.getElementById('book-text')?.files?.[0] || null;
         
         if (!coverFile || !pdfFile) {
             this.showMessage('Please upload both cover image and PDF file', 'error');
@@ -329,6 +388,7 @@ class AdminPortal {
             const uploadData = new FormData();
             uploadData.append('cover', coverFile);
             uploadData.append('pdf', pdfFile);
+            if (textFile) uploadData.append('text', textFile);
             
             const uploadResponse = await fetch('/api/admin/upload', {
                 method: 'POST',
@@ -354,7 +414,9 @@ class AdminPortal {
                 language: formData.get('language'),
                 description: formData.get('description'),
                 cover_url: uploadResult.coverUrl,
-                pdf_url: uploadResult.pdfUrl
+                pdf_url: uploadResult.pdfUrl,
+                text_url: uploadResult.textUrl || null,
+                full_content_text: uploadResult.fullContentText || ''
             };
             
             const response = await fetch('/api/admin/books', {
@@ -387,6 +449,15 @@ class AdminPortal {
                 <p style="font-size: 0.875rem; color: #64748b;">PDF up to 50MB</p>
                 <input type="file" id="book-pdf" accept="application/pdf" style="display: none;" required>
             `;
+            const textUpload = document.getElementById('text-upload');
+            if (textUpload) {
+                textUpload.innerHTML = `
+                    <i class="fas fa-file-alt" style="font-size: 2rem; color: #64748b; margin-bottom: 0.5rem;"></i>
+                    <p>Click to upload or drag and drop</p>
+                    <p style="font-size: 0.875rem; color: #64748b;">TXT up to 20MB</p>
+                    <input type="file" id="book-text" accept=".txt,text/plain" style="display: none;">
+                `;
+            }
             
             // Re-setup file uploads after reset
             this.setupFileUploads();
