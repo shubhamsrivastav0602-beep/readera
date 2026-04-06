@@ -308,18 +308,58 @@
             `).join('');
         }
 
-        // Load books from JSON
+        // Load books: prefer books.json, fallback to /api/books
         async function loadBooks() {
             const grid = document.getElementById('books-grid');
             grid.innerHTML = '<div class="loader">Loading books...</div>';
 
+            async function loadFromApi() {
+                const res = await fetch('/api/books');
+                if (!res.ok) throw new Error('API failed');
+                const apiBooks = await res.json();
+                if (!Array.isArray(apiBooks) || apiBooks.length === 0) {
+                    throw new Error('No books in API');
+                }
+                allBooks = apiBooks.map(b => ({
+                    id: b.id,
+                    title: b.title,
+                    author: b.author || 'Unknown',
+                    description: b.description || '',
+                    price: typeof b.price === 'number' ? b.price : 0,
+                    genre: b.genre || 'General',
+                    cover_url: b.cover_url || '',
+                }));
+            }
+
             try {
-                const response = await fetch('/books.json');
-                if (!response.ok) throw new Error('Failed to load');
-                allBooks = await response.json();
+                let usedApi = false;
+                try {
+                    const response = await fetch('/books.json');
+                    if (response.ok) {
+                        const json = await response.json().catch(() => []);
+                        if (Array.isArray(json) && json.length > 0) {
+                            allBooks = json;
+                        } else {
+                            await loadFromApi();
+                            usedApi = true;
+                        }
+                    } else {
+                        await loadFromApi();
+                        usedApi = true;
+                    }
+                } catch {
+                    await loadFromApi();
+                    usedApi = true;
+                }
+
                 applyFiltersAndSort();
+
+                if (usedApi) {
+                    console.info('Books loaded from /api/books (fallback).');
+                }
             } catch (error) {
-                grid.innerHTML = '<p class="error">Error loading books. Please refresh.</p>';
+                console.error('loadBooks error', error);
+                grid.innerHTML = '<p class="error">No books found. Please add books from the Admin panel.</p>';
             }
         }
 
