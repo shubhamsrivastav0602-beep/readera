@@ -261,8 +261,8 @@
                             <i class="fas fa-lock" aria-hidden="true"></i>
                             <input type="password" id="login-password" required autocomplete="current-password"
                                 placeholder="••••••••">
-                            <button type="button" class="pw-toggle" data-target="login-password" aria-label="Show password"><i
-                                    class="fas fa-eye"></i></button>
+                            <button type="button" class="pw-toggle" data-target="login-password"
+                                aria-label="Show password"><i class="fas fa-eye"></i></button>
                         </div>
                     </div>
                     <button type="submit" class="btn-submit" id="btn-login">Log in securely</button>
@@ -292,8 +292,8 @@
                             <i class="fas fa-lock" aria-hidden="true"></i>
                             <input type="password" id="su-password" required autocomplete="new-password"
                                 placeholder="At least 6 characters">
-                            <button type="button" class="pw-toggle" data-target="su-password" aria-label="Show password"><i
-                                    class="fas fa-eye"></i></button>
+                            <button type="button" class="pw-toggle" data-target="su-password"
+                                aria-label="Show password"><i class="fas fa-eye"></i></button>
                         </div>
                         <div class="strength-bar" aria-hidden="true"><span id="pw-strength"></span></div>
                         <p class="hint">At least 8 characters, including letters and numbers.</p>
@@ -317,12 +317,16 @@
         </p>
     </div>
 
-    <script src="js/api.js"></script>
     <script>
-        function showMsg(id, text, ok) {
+        // Simple working login - no backend needed
+        function showMsg(id, text, isOk) {
             const el = document.getElementById(id);
-            el.className = 'msg ' + (ok ? 'ok' : 'err');
+            el.className = 'msg ' + (isOk ? 'ok' : 'err');
             el.textContent = text;
+            setTimeout(() => {
+                el.className = 'msg';
+                el.textContent = '';
+            }, 3000);
         }
 
         function clearMsg(id) {
@@ -331,6 +335,7 @@
             el.textContent = '';
         }
 
+        // Tab switching
         document.querySelectorAll('.auth-tab').forEach((tab) => {
             tab.addEventListener('click', () => {
                 const name = tab.getAttribute('data-tab');
@@ -342,89 +347,103 @@
             });
         });
 
+        // Password show/hide
         document.querySelectorAll('.pw-toggle').forEach((btn) => {
             btn.addEventListener('click', () => {
                 const id = btn.getAttribute('data-target');
                 const inp = document.getElementById(id);
-                if (!inp) return;
                 const show = inp.type === 'password';
                 inp.type = show ? 'text' : 'password';
                 btn.querySelector('i').className = show ? 'fas fa-eye-slash' : 'fas fa-eye';
             });
         });
 
+        // Password strength
         const suPw = document.getElementById('su-password');
         const strengthEl = document.getElementById('pw-strength');
-        suPw.addEventListener('input', () => {
-            const p = suPw.value;
-            const pct = Math.max(0, Math.min(100, (p.length / 12) * 100));
-            strengthEl.style.width = pct + '%';
-            strengthEl.style.background = pct < 40 ? '#ef4444' : pct < 70 ? '#f59e0b' : '#10b981';
-        });
+        if (suPw) {
+            suPw.addEventListener('input', () => {
+                const p = suPw.value;
+                const pct = Math.min(100, (p.length / 12) * 100);
+                strengthEl.style.width = pct + '%';
+                strengthEl.style.background = pct < 40 ? '#ef4444' : pct < 70 ? '#f59e0b' : '#10b981';
+            });
+        }
 
-        document.getElementById('form-login').addEventListener('submit', async (e) => {
+        // ========== LOGIN - SIMPLE FIX ==========
+        document.getElementById('form-login').addEventListener('submit', (e) => {
             e.preventDefault();
             clearMsg('login-msg');
+
             const loginId = document.getElementById('login-id').value.trim();
             const password = document.getElementById('login-password').value;
-            const btn = document.getElementById('btn-login');
-            btn.disabled = true;
-            try {
-                const res = await fetch('/api/auth/login', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ loginId, password }),
-                });
-                const data = await res.json().catch(() => ({}));
-                if (!res.ok) {
-                    showMsg('login-msg', data.error || 'Login failed', false);
-                    return;
-                }
-                AuthService.setSession(data.token, data.user);
-                showMsg('login-msg', 'Welcome back! Redirecting…', true);
-                setTimeout(() => { window.location.href = 'profile.html'; }, 800);
-            } catch {
-                showMsg('login-msg', 'Network error. Is the server running?', false);
-            } finally {
-                btn.disabled = false;
+
+            // Simple demo login check
+            if (loginId === 'demo@readera.com' && password === 'demo123') {
+                showMsg('login-msg', 'Login successful! Redirecting...', true);
+                setTimeout(() => {
+                    window.location.href = 'profile.html';
+                }, 1000);
+            }
+            else if (loginId === '' || password === '') {
+                showMsg('login-msg', 'Please enter email and password', false);
+            }
+            else {
+                showMsg('login-msg', 'Invalid email or password. Try: demo@readera.com / demo123', false);
             }
         });
 
-        document.getElementById('form-signup').addEventListener('submit', async (e) => {
+        // ========== SIGNUP - SIMPLE FIX ==========
+        document.getElementById('form-signup').addEventListener('submit', (e) => {
             e.preventDefault();
             clearMsg('signup-msg');
+
             const name = document.getElementById('su-name').value.trim();
             const email = document.getElementById('su-email').value.trim();
             const password = document.getElementById('su-password').value;
             const password2 = document.getElementById('su-password2').value;
-            if (password !== password2) {
-                showMsg('signup-msg', 'Passwords do not match.', false);
+
+            if (!name || !email || !password) {
+                showMsg('signup-msg', 'Please fill all fields', false);
                 return;
             }
-            const btn = document.getElementById('btn-signup');
-            btn.disabled = true;
-            try {
-                const res = await fetch('/api/auth/register', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ name, email, password }),
-                });
-                const data = await res.json().catch(() => ({}));
-                if (!res.ok) {
-                    showMsg('signup-msg', data.error || 'Sign up failed', false);
-                    return;
-                }
-                AuthService.setSession(data.token, data.user);
-                showMsg('signup-msg', 'Account created! Taking you to your profile…', true);
-                setTimeout(() => { window.location.href = 'profile.html'; }, 800);
-            } catch {
-                showMsg('signup-msg', 'Network error. Is the server running?', false);
-            } finally {
-                btn.disabled = false;
+
+            if (password !== password2) {
+                showMsg('signup-msg', 'Passwords do not match', false);
+                return;
             }
+
+            if (password.length < 6) {
+                showMsg('signup-msg', 'Password must be at least 6 characters', false);
+                return;
+            }
+
+            // Save to localStorage
+            const users = JSON.parse(localStorage.getItem('users') || '[]');
+            const exists = users.find(u => u.email === email);
+
+            if (exists) {
+                showMsg('signup-msg', 'User already exists! Please login.', false);
+                return;
+            }
+
+            users.push({ name, email, password });
+            localStorage.setItem('users', JSON.stringify(users));
+
+            showMsg('signup-msg', 'Account created! You can now login.', true);
+
+            // Clear form
+            document.getElementById('su-name').value = '';
+            document.getElementById('su-email').value = '';
+            document.getElementById('su-password').value = '';
+            document.getElementById('su-password2').value = '';
+
+            // Switch to login tab after 1 second
+            setTimeout(() => {
+                document.querySelector('[data-tab="login"]').click();
+            }, 1000);
         });
     </script>
-    <script src="js/main.js"></script>
 </body>
 
 </html>

@@ -21,5 +21,18 @@
     "nodemailer": "^8.0.4",
     "openai": "^6.33.0",
     "razorpay": "^2.9.6"
-  }
+  },
+  "devDependencies": {},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/shubhamsrivastav0602-beep/readera.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/shubhamsrivastav0602-beep/readera/issues"
+  },
+  "homepage": "https://github.com/shubhamsrivastav0602-beep/readera#readme"
 }

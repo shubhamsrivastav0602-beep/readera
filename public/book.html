@@ -81,6 +81,38 @@
             line-height: 1.8;
         }
 
+        /* Reading sheet (open-page feel) */
+        .reading-sheet {
+            background: #fffaf2;
+            border: 1px solid rgba(15, 23, 42, 0.08);
+            border-radius: 14px;
+            box-shadow: 0 14px 36px rgba(15, 23, 42, 0.10);
+            padding: 22px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .reading-sheet::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(90deg, rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0.0));
+            opacity: 0.35;
+            pointer-events: none;
+        }
+
+        .reading-sheet::after {
+            content: "";
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: 50%;
+            width: 1px;
+            background: rgba(139, 69, 19, 0.12);
+            transform: translateX(-0.5px);
+            pointer-events: none;
+        }
+
         /* ✅ Fix: Proper content formatting */
         .book-content {
             white-space: pre-wrap;
@@ -232,17 +264,23 @@
                     contentHtml = `
                         <div class="full-section">
                             <div class="warning">📖 You have full access to this book!</div>
-                            <div class="book-content">${formatContent(escapeHtml(fullText))}</div>
+                            <div class="reading-sheet">
+                                <div class="book-content">${formatContent(escapeHtml(fullText))}</div>
+                            </div>
                         </div>
                     `;
                 } else {
                     // Preview content
-                    const previewText = book.preview_content || book.description || 'No preview available. Purchase to read full content.';
+                    const previewText = (book.preview_content || book.previewText || book.description || 'No preview available.')
+                        .toString()
+                        .slice(0, 400);
                     contentHtml = `
                         <div class="preview-section">
                             <div class="warning">🔒 This is a preview. Purchase the book to read the full content!</div>
                             <h3>📖 Free Preview</h3>
-                            <div class="book-content">${formatContent(escapeHtml(previewText))}</div>
+                            <div class="reading-sheet">
+                                <div class="book-content">${formatContent(escapeHtml(previewText))}</div>
+                            </div>
                             <div style="margin-top: 20px; padding: 15px; background: #f0f0f0; text-align: center; border-radius: 8px;">
                                 ⭐ <strong>Only ₹${book.price}</strong> to unlock full book! ⭐
                             </div>
