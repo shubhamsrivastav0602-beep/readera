@@ -181,23 +181,32 @@ class AdminPortal {
 
     setupImportActions() {
         const btn = document.getElementById('import-ia-btn');
-        if (!btn) return;
-        btn.addEventListener('click', async () => {
-            const out = document.getElementById('ia-import-result');
-            btn.disabled = true;
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Importing...';
+        const strictBtn = document.getElementById('import-ia-strict-1000-btn');
+        const out = document.getElementById('ia-import-result');
+
+        const runImport = async (which) => {
+            const activeBtn = which === 'strict' ? strictBtn : btn;
+            if (!activeBtn) return;
+            activeBtn.disabled = true;
+            activeBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Importing...';
             if (out) {
                 out.style.display = 'block';
-                out.textContent = 'Starting import from Internet Archive...';
+                out.textContent = which === 'strict'
+                    ? 'Starting STRICT import (Public Domain / Creative Commons only)...'
+                    : 'Starting Hindi import...';
             }
             try {
-                const res = await fetch('/api/admin/import/internet-archive-hindi', {
+                const url = which === 'strict'
+                    ? '/api/admin/import/ia-strict'
+                    : '/api/admin/import/internet-archive-hindi';
+                const payload = which === 'strict' ? { limit: 1000 } : { limit: 50 };
+                const res = await fetch(url, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                         'Authorization': `Bearer ${localStorage.getItem('token')}`,
                     },
-                    body: JSON.stringify({ limit: 50 }),
+                    body: JSON.stringify(payload),
                 });
                 const data = await res.json().catch(() => ({}));
                 if (!res.ok) throw new Error(data.error || 'Import failed');
@@ -207,10 +216,19 @@ class AdminPortal {
                 this.showMessage(err.message || 'Import failed', 'error');
                 if (out) out.textContent = `Error: ${err.message || 'Import failed'}`;
             } finally {
-                btn.disabled = false;
-                btn.innerHTML = '<i class="fas fa-download"></i> Import First 50 Hindi Books';
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fas fa-download"></i> Import First 50 Hindi Books';
+                }
+                if (strictBtn) {
+                    strictBtn.disabled = false;
+                    strictBtn.innerHTML = '<i class="fas fa-shield-halved"></i> Strict PD/CC Import (up to 1000)';
+                }
             }
-        });
+        };
+
+        if (btn) btn.addEventListener('click', () => runImport('hindi'));
+        if (strictBtn) strictBtn.addEventListener('click', () => runImport('strict'));
     }
 
     async loadDashboard() {

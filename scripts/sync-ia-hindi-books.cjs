@@ -7,7 +7,7 @@
  *   collection:booksbylanguage_hindi AND mediatype:texts
  * Then for each identifier, it pulls metadata and picks PDF + TXT download URLs.
  *
- * NOTE: This is "best effort" open/free listing; please verify rights/license per item.
+ * NOTE: STRICT MODE: only items with explicit Public Domain or Creative Commons rights.
  */
 const fs = require('fs');
 const path = require('path');
@@ -30,16 +30,16 @@ function safeText(v) {
   return String(v).replace(/\s+/g, ' ').trim();
 }
 
-function isLikelyOpenAccess(meta) {
+function isStrictPdOrCc(meta) {
   const md = meta?.metadata || {};
-  const rightsText = `${md.rights || ''} ${md.licenseurl || ''}`.toLowerCase();
+  const rightsText = `${md.rights || ''}`.toLowerCase();
+  const licenseUrl = `${md.licenseurl || ''}`.toLowerCase();
   const restricted = `${md['access-restricted-item'] || ''}`.toLowerCase();
   if (restricted && restricted !== 'false') return false;
-  if (rightsText.includes('public domain') || rightsText.includes('creativecommons') || rightsText.includes('cc-by')) {
-    return true;
-  }
-  // If not explicitly restricted, keep as candidate (best effort).
-  return true;
+  if (rightsText.includes('public domain')) return true;
+  if (licenseUrl.includes('creativecommons.org')) return true;
+  if (rightsText.includes('creativecommons')) return true;
+  return false;
 }
 
 function pickIaFiles(meta) {
@@ -71,9 +71,29 @@ async function fetchJson(url) {
   return res.json();
 }
 
+async function fetchPreview(url, maxChars = 400) {
+  try {
+    const res = await fetch(url, { headers: { 'User-Agent': 'ReaderaSync/1.0' } });
+    if (!res.ok) return '';
+    const text = await res.text();
+    return String(text || '').slice(0, maxChars);
+  } catch {
+    return '';
+  }
+}
+
 async function main() {
-  const limit = Math.min(Number(process.argv[2] || 50) || 50, 50);
-  const query = encodeURIComponent('(collection:booksbylanguage_hindi) AND mediatype:texts');
+  const limit = Math.min(Number(process.argv[2] || 50) || 50, 1000);
+  // Accept "hindi" (default) or "strict-1000" across Hindi+English+self-help
+  const mode = String(process.argv[3] || 'hindi').toLowerCase();
+  const queries =
+    mode === 'strict-1000'
+      ? [
+          '(collection:booksbylanguage_hindi) AND mediatype:texts',
+          '(collection:opensource) AND mediatype:texts AND language:English',
+          '(collection:opensource) AND mediatype:texts AND language:English AND (subject:\"self help\" OR subject:\"self-help\" OR subject:productivity OR subject:motivation)',
+        ]
+      : ['(collection:booksbylanguage_hindi) AND mediatype:texts'];
   const fl = [
     'identifier',
     'title',
@@ -85,55 +105,67 @@ async function main() {
     'rights',
   ].map((f) => `fl[]=${encodeURIComponent(f)}`).join('&');
 
-  const searchUrl = `${IA_ADVANCED_SEARCH}?q=${query}&${fl}&rows=${limit}&page=1&output=json`;
-  const searchJson = await fetchJson(searchUrl);
-  const docs = (searchJson?.response?.docs || []).slice(0, limit);
-
   const out = [];
   const legal_notice =
-    'Imported from Internet Archive free/open content listing. Verify rights/license before commercial redistribution.';
+    'Imported from Internet Archive where rights indicate Public Domain or Creative Commons. Verify rights/license before redistribution.';
 
   let idCounter = 900000; // avoid clashing with local DB ids
 
-  for (const d of docs) {
-    const identifier = d.identifier;
-    if (!identifier) continue;
+  for (const qRaw of queries) {
+    if (out.length >= limit) break;
+    let page = 1;
+    while (out.length < limit && page <= 50) {
+      const q = encodeURIComponent(qRaw);
+      const searchUrl = `${IA_ADVANCED_SEARCH}?q=${q}&${fl}&rows=100&page=${page}&output=json`;
+      const searchJson = await fetchJson(searchUrl);
+      const docs = (searchJson?.response?.docs || []);
+      if (!docs.length) break;
 
-    try {
-      const md = await fetchJson(`${IA_METADATA}/${encodeURIComponent(identifier)}`);
-      if (!isLikelyOpenAccess(md)) continue;
+      for (const d of docs) {
+        if (out.length >= limit) break;
+        const identifier = d.identifier;
+        if (!identifier) continue;
 
-      const { pdfFile, textFile } = pickIaFiles(md);
-      if (!pdfFile || !textFile) continue;
+        try {
+          const md = await fetchJson(`${IA_METADATA}/${encodeURIComponent(identifier)}`);
+          if (!isStrictPdOrCc(md)) continue;
 
-      const title = safeText(d.title || identifier);
-      const author = safeText(first(d.creator, 'Unknown')) || 'Unknown';
-      const description = safeText(first(d.description, `Imported from Internet Archive (${identifier})`));
-      const language = safeText(first(d.language, 'Hindi')) || 'Hindi';
+          const { pdfFile, textFile } = pickIaFiles(md);
+          if (!pdfFile || !textFile) continue;
 
-      const source_url = `https://archive.org/details/${identifier}`;
-      const external_pdf_url = `https://archive.org/download/${identifier}/${encodeURIComponent(pdfFile)}`;
-      const external_text_url = `https://archive.org/download/${identifier}/${encodeURIComponent(textFile)}`;
-      const cover_url = `https://archive.org/services/img/${encodeURIComponent(identifier)}`;
+          const title = safeText(d.title || identifier);
+          const author = safeText(first(d.creator, 'Unknown')) || 'Unknown';
+          const description = safeText(first(d.description, `Imported from Internet Archive (${identifier})`));
+          const language = safeText(first(d.language, 'Hindi')) || 'Hindi';
 
-      out.push({
-        id: idCounter++,
-        title,
-        author,
-        description,
-        price: 0,
-        genre: 'Public Domain',
-        cover_url,
-        pdf_url: external_pdf_url,
-        text_url: external_text_url,
-        language,
-        source_name: 'internet_archive',
-        source_url,
-        legal_notice,
-        is_public_domain: 1,
-      });
-    } catch (e) {
-      // skip item on any error
+          const source_url = `https://archive.org/details/${identifier}`;
+          const external_pdf_url = `https://archive.org/download/${identifier}/${encodeURIComponent(pdfFile)}`;
+          const external_text_url = `https://archive.org/download/${identifier}/${encodeURIComponent(textFile)}`;
+          const cover_url = `https://archive.org/services/img/${encodeURIComponent(identifier)}`;
+          const preview_content = await fetchPreview(external_text_url, 400);
+
+          out.push({
+            id: idCounter++,
+            title,
+            author,
+            description,
+            preview_content: preview_content || description.slice(0, 400),
+            price: 1,
+            genre: mode === 'strict-1000' && /self/i.test(String(d.subject || '')) ? 'Self-Help' : 'Public Domain',
+            cover_url,
+            pdf_url: external_pdf_url,
+            text_url: external_text_url,
+            language,
+            source_name: 'internet_archive',
+            source_url,
+            legal_notice,
+            is_public_domain: 1,
+          });
+        } catch {
+          // skip item on any error
+        }
+      }
+      page++;
     }
   }
 

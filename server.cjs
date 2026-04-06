@@ -68,6 +68,7 @@ async function runMigrations() {
         'ALTER TABLE books ADD COLUMN pdf_url TEXT',
         'ALTER TABLE books ADD COLUMN text_url TEXT',
         'ALTER TABLE books ADD COLUMN full_content_text TEXT',
+        'ALTER TABLE books ADD COLUMN preview_content TEXT',
         'ALTER TABLE books ADD COLUMN publisher TEXT',
         'ALTER TABLE books ADD COLUMN pages INTEGER',
         'ALTER TABLE books ADD COLUMN language TEXT DEFAULT "English"',

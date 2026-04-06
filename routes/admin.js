@@ -36,6 +36,7 @@ function normalizeBookForJson(row) {
         title: row.title || '',
         author: row.author || 'Unknown',
         description: row.description || '',
+        preview_content: row.preview_content || row.previewContent || null,
         price: parseNumber(row.price, 0),
         genre: row.genre || 'General',
         cover_url: row.cover_url || '',
@@ -91,6 +92,18 @@ function isLikelyOpenAccess(meta) {
     }
     // IA open texts often expose direct downloadable files when unrestricted.
     return true;
+}
+
+function isStrictPdOrCc(meta) {
+    const md = meta?.metadata || {};
+    const rightsText = `${md.rights || ''}`.toLowerCase();
+    const licenseUrl = `${md.licenseurl || ''}`.toLowerCase();
+    const restricted = `${md['access-restricted-item'] || ''}`.toLowerCase();
+    if (restricted && restricted !== 'false') return false;
+    if (rightsText.includes('public domain')) return true;
+    if (licenseUrl.includes('creativecommons.org')) return true;
+    if (rightsText.includes('creativecommons')) return true;
+    return false;
 }
 
 function pickIaFiles(meta) {
@@ -216,7 +229,7 @@ router.post('/books', authenticateToken, isAdmin, async (req, res) => {
     try {
         const {
             title, author, isbn, price, genre, publisher,
-            pages, language, description, cover_url, pdf_url, text_url, full_content_text
+            pages, language, description, cover_url, pdf_url, text_url, full_content_text, preview_content
         } = req.body;
 
         if (!title || !author || price == null || !genre || !description || !cover_url || !pdf_url) {
@@ -227,8 +240,8 @@ router.post('/books', authenticateToken, isAdmin, async (req, res) => {
             sql: `
                 INSERT INTO books (
                     title, author, isbn, price, genre, publisher,
-                    pages, language, description, cover_url, pdf_url, text_url, full_content_text, created_at
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
+                    pages, language, description, cover_url, pdf_url, text_url, full_content_text, preview_content, created_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
             `,
             args: [
                 title,
@@ -244,6 +257,7 @@ router.post('/books', authenticateToken, isAdmin, async (req, res) => {
                 pdf_url,
                 text_url || null,
                 full_content_text || '',
+                preview_content || null,
             ]
         });
 
@@ -403,6 +417,139 @@ router.post('/import/internet-archive-hindi', authenticateToken, isAdmin, async 
     } catch (error) {
         console.error('IA import error:', error);
         return res.status(500).json({ error: `Import failed: ${error.message}` });
+    }
+});
+
+// Strict importer: only Public Domain / Creative Commons, price ₹1, preview 400 chars
+router.post('/import/ia-strict', authenticateToken, isAdmin, async (req, res) => {
+    try {
+        const limit = Math.min(parseNumber(req.body?.limit, 1000), 1000);
+        const legalNotice = 'Imported from Internet Archive where rights indicate Public Domain or Creative Commons. Verify rights/license on the source page before redistribution.';
+
+        // Queries: Hindi collection, English opensource, and self-help keywords.
+        const queries = [
+            '(collection:booksbylanguage_hindi) AND mediatype:texts',
+            '(collection:opensource) AND mediatype:texts AND language:English',
+            '(collection:opensource) AND mediatype:texts AND language:English AND (subject:"self help" OR subject:"self-help" OR subject:productivity OR subject:motivation)',
+        ];
+
+        const fl = [
+            'identifier', 'title', 'creator', 'description', 'year', 'language', 'licenseurl', 'rights', 'subject'
+        ].map((f) => `fl[]=${encodeURIComponent(f)}`).join('&');
+
+        const imported = [];
+        const skipped = [];
+
+        for (const qRaw of queries) {
+            if (imported.length >= limit) break;
+
+            let page = 1;
+            while (imported.length < limit && page <= 50) {
+                const rows = 100;
+                const q = encodeURIComponent(qRaw);
+                const searchUrl = `${IA_ADVANCED_SEARCH}?q=${q}&${fl}&rows=${rows}&page=${page}&output=json`;
+                const searchJson = await fetchJson(searchUrl);
+                const docs = toSafeArray(searchJson?.response?.docs);
+                if (!docs.length) break;
+
+                for (const d of docs) {
+                    if (imported.length >= limit) break;
+                    const identifier = d.identifier;
+                    if (!identifier) continue;
+
+                    try {
+                        const md = await fetchJson(`${IA_METADATA}/${encodeURIComponent(identifier)}`);
+                        if (!isStrictPdOrCc(md)) {
+                            skipped.push({ identifier, reason: 'Not strict PD/CC' });
+                            continue;
+                        }
+
+                        const { pdfFile, textFile } = pickIaFiles(md);
+                        if (!pdfFile || !textFile) {
+                            skipped.push({ identifier, reason: 'Missing PDF or TXT' });
+                            continue;
+                        }
+
+                        const sourceUrl = `https://archive.org/details/${identifier}`;
+                        const externalPdfUrl = `https://archive.org/download/${identifier}/${encodeURIComponent(pdfFile)}`;
+                        const externalTextUrl = `https://archive.org/download/${identifier}/${encodeURIComponent(textFile)}`;
+                        const title = (Array.isArray(d.title) ? d.title[0] : d.title) || identifier;
+                        const author = Array.isArray(d.creator) ? d.creator[0] : (d.creator || 'Unknown');
+                        const desc = Array.isArray(d.description) ? d.description[0] : (d.description || `Imported from Internet Archive (${identifier})`);
+                        const language = Array.isArray(d.language) ? d.language[0] : (d.language || 'English');
+                        const subject = Array.isArray(d.subject) ? d.subject.join(', ') : (d.subject || '');
+
+                        const snippet = await fetchTextSnippet(externalTextUrl, 8000);
+                        const preview = snippet ? snippet.slice(0, 400) : '';
+
+                        // avoid duplicates
+                        const dup = await req.db.execute({
+                            sql: `SELECT id FROM books WHERE source_url = ? LIMIT 1`,
+                            args: [sourceUrl],
+                        });
+                        if (dup.rows.length) {
+                            skipped.push({ identifier, reason: 'Already imported' });
+                            continue;
+                        }
+
+                        const coverUrl = `https://archive.org/services/img/${encodeURIComponent(identifier)}`;
+
+                        await req.db.execute({
+                            sql: `
+                                INSERT INTO books (
+                                    title, author, description, price, genre, cover_url, language,
+                                    source_name, source_url, legal_notice,
+                                    pdf_url, text_url, external_pdf_url, external_text_url,
+                                    full_content_text, preview_content, is_public_domain, created_at
+                                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
+                            `,
+                            args: [
+                                title,
+                                author,
+                                desc,
+                                1, // ₹1
+                                subject && String(subject).toLowerCase().includes('self') ? 'Self-Help' : 'Public Domain',
+                                coverUrl,
+                                language,
+                                'internet_archive',
+                                sourceUrl,
+                                legalNotice,
+                                externalPdfUrl,
+                                externalTextUrl,
+                                externalPdfUrl,
+                                externalTextUrl,
+                                '', // keep full external; do not store full text in DB
+                                preview || desc.slice(0, 400),
+                                1,
+                            ],
+                        });
+
+                        const inserted = await req.db.execute({ sql: `SELECT * FROM books WHERE rowid = last_insert_rowid()` });
+                        if (inserted.rows[0]) upsertBookInJson(inserted.rows[0]);
+
+                        imported.push({ identifier, title });
+                    } catch (e) {
+                        skipped.push({ identifier, reason: 'Import error' });
+                    }
+                }
+
+                page++;
+            }
+        }
+
+        res.json({
+            success: true,
+            strict: true,
+            limit,
+            importedCount: imported.length,
+            skippedCount: skipped.length,
+            legalNotice,
+            imported,
+            skipped: skipped.slice(0, 50),
+        });
+    } catch (e) {
+        console.error('ia-strict', e);
+        res.status(500).json({ error: `Strict import failed: ${e.message}` });
     }
 });
 
