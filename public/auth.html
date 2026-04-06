@@ -399,7 +399,6 @@
             const password = document.getElementById('su-password').value;
             const password2 = document.getElementById('su-password2').value;
 
-            // Validations
             if (!name || !email || !password) {
                 showMsg('signup-msg', 'Please fill all fields', false);
                 return;
@@ -420,17 +419,14 @@
                 return;
             }
 
-            // Refresh users list
             users = JSON.parse(localStorage.getItem('users') || '[]');
 
-            // Check if user already exists
             const exists = users.find(u => u.email === email);
             if (exists) {
                 showMsg('signup-msg', 'User already exists! Please login instead.', false);
                 return;
             }
 
-            // Save new user
             const newUser = {
                 id: Date.now().toString(),
                 name: name,
@@ -443,13 +439,11 @@
 
             showMsg('signup-msg', 'Account created successfully! You can now login.', true);
 
-            // Clear form
             document.getElementById('su-name').value = '';
             document.getElementById('su-email').value = '';
             document.getElementById('su-password').value = '';
             document.getElementById('su-password2').value = '';
 
-            // Switch to login tab after 1.5 seconds
             setTimeout(() => {
                 document.querySelector('[data-tab="login"]').click();
             }, 1500);
@@ -468,10 +462,8 @@
                 return;
             }
 
-            // Refresh users list from localStorage
             users = JSON.parse(localStorage.getItem('users') || '[]');
 
-            // Find user by email
             const user = users.find(u => u.email === email);
 
             if (!user) {
@@ -484,7 +476,7 @@
                 return;
             }
 
-            // Login successful - save current session
+            // Save session
             const currentUser = {
                 id: user.id,
                 name: user.name,
@@ -501,18 +493,14 @@
             }, 1000);
         });
 
-        // ========== CHECK IF ALREADY LOGGED IN ==========
-        const currentUser = JSON.parse(localStorage.getItem('currentUser') || 'null');
-        if (currentUser && currentUser.isLoggedIn) {
-            if (confirm(`You are already logged in as ${currentUser.name}. Continue to profile?`)) {
-                window.location.href = 'profile.html';
-            } else {
-                localStorage.removeItem('currentUser');
-            }
+        // ========== FIXED: CHECK IF ALREADY LOGGED IN - NO CONFIRM BOX ==========
+        const loggedInUser = JSON.parse(localStorage.getItem('currentUser') || 'null');
+        if (loggedInUser && loggedInUser.isLoggedIn) {
+            // Direct redirect without asking
+            window.location.href = 'profile.html';
         }
 
         console.log('✅ Auth System Ready!');
-        console.log('📝 Signup with Name + Email + Password, then login with Email + Password');
     </script>
 </body>
 
