@@ -381,175 +381,58 @@
 
     <script src="js/api.js"></script>
     <script>
+        // Remove all API-dependent code and use localStorage instead
+
         document.getElementById('logout-btn').addEventListener('click', (e) => {
             e.preventDefault();
-            AuthService.logout();
+            localStorage.removeItem('currentUser');
+            window.location.href = 'auth.html';
         });
 
-        function pick(row, keys) {
-            for (const k of keys) {
-                if (row[k] != null && row[k] !== '') return row[k];
-            }
-            return null;
+        // Check if user is logged in
+        const currentUser = JSON.parse(localStorage.getItem('currentUser') || 'null');
+
+        if (!currentUser || !currentUser.isLoggedIn) {
+            window.location.href = 'auth.html';
         }
 
-        async function loadCatalog() {
-            try {
-                const r = await fetch('/books.json');
-                return await r.json();
-            } catch {
-                return [];
-            }
-        }
+        // Display user info
+        const name = currentUser.name || 'Reader';
+        const email = currentUser.email || '';
 
-        function mergeLibraryRows(apiRows, localIds, catalog) {
-            const byId = new Map();
-            (apiRows || []).forEach((row) => {
-                const id = pick(row, ['book_id', 'id']);
-                if (id == null) return;
-                byId.set(Number(id), row);
-            });
-            localIds.forEach((id) => {
-                if (!byId.has(Number(id))) {
-                    byId.set(Number(id), { book_id: id });
-                }
-            });
-            const out = [];
-            byId.forEach((row, id) => {
-                const cat = catalog.find((b) => String(b.id) === String(id));
-                const title = pick(row, ['title']) || (cat && cat.title) || ('Book #' + id);
-                const author = pick(row, ['author']) || (cat && cat.author) || '—';
-                const cover = pick(row, ['cover_url']) || (cat && cat.cover_url) || '';
-                const purchased = pick(row, ['purchased_at', 'purchasedAt']);
-                out.push({ id, title, author, cover, purchased });
-            });
-            return out.sort((a, b) => String(b.purchased || '').localeCompare(String(a.purchased || '')));
-        }
+        document.getElementById('hero-name').textContent = name;
+        document.getElementById('hero-initial').textContent = (name.charAt(0) || 'R').toUpperCase();
+        document.getElementById('hero-email').innerHTML = email ? '📧 ' + email : '';
+        document.getElementById('hero-phone').innerHTML = '';
+        document.getElementById('hero-since').innerHTML = '📅 Member since ' + new Date().toLocaleDateString();
 
-        function renderBooks(items) {
-            const el = document.getElementById('books-container');
-            if (!items.length) {
-                el.innerHTML = '<p class="empty-hint">No books yet. <a href="browse.html">Browse the catalog</a> or complete a purchase—your titles will show up here.</p>';
-                return;
-            }
-            el.innerHTML = '<div class="books-grid-acct">' + items.map((b) => `
-                <article class="book-tile">
-                    <img src="${b.cover || 'https://via.placeholder.com/200x140?text=Book'}" alt="" onerror="this.src='https://via.placeholder.com/200x140?text=Book'">
-                    <div class="bd">
-                        <div class="t">${escapeHtml(b.title)}</div>
-                        <div class="a">${escapeHtml(b.author)}</div>
-                        ${b.purchased ? `<div class="a" style="margin-top:0.35rem;">Added ${formatDate(b.purchased)}</div>` : ''}
-                        <div class="actions">
-                            <a class="primary" href="book.html?id=${b.id}">View</a>
-                            <a class="secondary" href="reader.html?id=${b.id}">Read</a>
-                        </div>
+        document.getElementById('d-email').textContent = email || '—';
+        document.getElementById('d-phone').textContent = '—';
+        document.getElementById('d-id').textContent = currentUser.id || '—';
+
+        // Simple library display
+        const library = JSON.parse(localStorage.getItem('library') || '[]');
+        const booksContainer = document.getElementById('books-container');
+
+        if (library.length === 0) {
+            booksContainer.innerHTML = '<p class="empty-hint">No books yet. <a href="browse.html">Browse the catalog</a> to add books to your library.</p>';
+        } else {
+            booksContainer.innerHTML = '<div class="books-grid-acct">' + library.map((b, i) => `
+            <article class="book-tile">
+                <div class="bd">
+                    <div class="t">${b.title || 'Book ' + (i + 1)}</div>
+                    <div class="a">${b.author || 'Unknown Author'}</div>
+                    <div class="actions">
+                        <a class="primary" href="reader.html?id=${b.id}">Read</a>
                     </div>
-                </article>
-            `).join('') + '</div>';
+                </div>
+            </article>
+        `).join('') + '</div>';
         }
 
-        function escapeHtml(s) {
-            if (!s) return '';
-            return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-        }
-
-        function formatDate(d) {
-            if (!d) return '';
-            try {
-                return new Date(d).toLocaleDateString(undefined, { dateStyle: 'medium' });
-            } catch {
-                return String(d);
-            }
-        }
-
-        function renderOrders(orders) {
-            const el = document.getElementById('orders-container');
-            if (!orders || !orders.length) {
-                el.innerHTML = '<p class="empty-hint">No orders yet. Purchases made with your logged-in account will appear here.</p>';
-                return;
-            }
-            el.innerHTML = `
-                <table class="order-table">
-                    <thead>
-                        <tr>
-                            <th>Order</th>
-                            <th>Date</th>
-                            <th>Amount</th>
-                            <th>Status</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${orders.map((o) => {
-                const st = (o.status || '').toLowerCase();
-                const badge = st === 'paid' ? 'badge badge-paid' : 'badge badge-other';
-                return `<tr>
-                                <td>#${o.id}</td>
-                                <td>${formatDate(o.created_at)}</td>
-                                <td>₹${o.amount ?? '—'}</td>
-                                <td><span class="${badge}">${escapeHtml(o.status || '—')}</span></td>
-                            </tr>`;
-            }).join('')}
-                    </tbody>
-                </table>`;
-        }
-
-        document.addEventListener('DOMContentLoaded', async () => {
-            if (!AuthService.isAuthenticated()) {
-                window.location.href = 'auth.html';
-                return;
-            }
-
-            const catalog = await loadCatalog();
-            let me = AuthService.getUser();
-
-            try {
-                me = await fetchAPI('/auth/me');
-                AuthService.setSession(localStorage.getItem('token'), me);
-            } catch (e) {
-                console.warn('Profile /me:', e.message);
-            }
-
-            const name = me.name || 'Reader';
-            const email = me.email || '';
-            const phone = me.phone || '';
-            const id = me.id;
-
-            document.getElementById('hero-name').textContent = name;
-            document.getElementById('hero-initial').textContent = (name.charAt(0) || 'R').toUpperCase();
-            document.getElementById('hero-email').textContent = email ? '📧 ' + email : '';
-            document.getElementById('hero-phone').textContent = phone ? '📱 +' + (phone.length === 10 ? '91' + phone : phone) : '';
-            document.getElementById('hero-since').textContent = me.created_at ? '📅 Since ' + formatDate(me.created_at) : '';
-
-            document.getElementById('d-email').textContent = email || '—';
-            document.getElementById('d-phone').textContent = phone ? ('+' + (phone.length === 10 ? '91' : '') + phone) : '—';
-            document.getElementById('d-id').textContent = id != null ? String(id) : '—';
-
-            let apiLibrary = [];
-            try {
-                apiLibrary = await fetchAPI('/library');
-            } catch (e) {
-                console.warn('Library API:', e.message);
-            }
-
-            let localIds = [];
-            try {
-                const lib = JSON.parse(localStorage.getItem('library') || '[]');
-                localIds = lib.map((b) => b.id).filter((x) => x != null);
-            } catch { /* ignore */ }
-
-            const merged = mergeLibraryRows(apiLibrary, localIds, catalog);
-            renderBooks(merged);
-
-            try {
-                const orders = await fetchAPI('/orders/my-orders');
-                renderOrders(orders);
-            } catch (e) {
-                document.getElementById('orders-container').innerHTML =
-                    '<p class="load-err">Could not load orders (check server / payment setup).</p>';
-            }
-
-            AuthService.refreshNav();
-        });
+        // Simple orders display
+        const ordersContainer = document.getElementById('orders-container');
+        ordersContainer.innerHTML = '<p class="empty-hint">No orders yet. Purchases will appear here.</p>';
     </script>
     <script src="js/main.js"></script>
 </body>
