@@ -98,10 +98,11 @@ router.post('/register', async (req, res) => {
     }
 
     const phone = normalizePhone(phoneRaw);
-    if (!phone) {
+    // Phone is optional for signup
+    if (phoneRaw && phoneRaw.trim() !== '' && !phone) {
         return res.status(400).json({
             success: false,
-            error: 'Enter a valid 10-digit Indian mobile number.',
+            error: 'Enter a valid 10-digit Indian mobile number or leave empty.',
         });
     }
 

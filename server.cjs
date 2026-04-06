@@ -20,6 +20,12 @@ async function runMigrations() {
     const statements = [
         'ALTER TABLE users ADD COLUMN phone TEXT',
         'CREATE UNIQUE INDEX IF NOT EXISTS idx_users_phone ON users(phone) WHERE phone IS NOT NULL',
+        'ALTER TABLE books ADD COLUMN pdf_url TEXT',
+        'ALTER TABLE books ADD COLUMN publisher TEXT',
+        'ALTER TABLE books ADD COLUMN pages INTEGER',
+        'ALTER TABLE books ADD COLUMN language TEXT DEFAULT "English"',
+        'ALTER TABLE orders ADD COLUMN razorpay_payment_id TEXT',
+        'ALTER TABLE orders ADD COLUMN updated_at DATETIME DEFAULT CURRENT_TIMESTAMP'
     ];
     for (const sql of statements) {
         try {
@@ -59,6 +65,7 @@ const libraryRoutes = require('./routes/library');
 const wishlistRoutes = require('./routes/wishlist');
 const uploadRoutes = require('./routes/upload');
 const emailRoutes = require('./routes/email');
+const adminRoutes = require('./routes/admin');
 
 app.use('/api/auth', authLimiter, authRoutes);
 app.use('/api/books', bookRoutes);
@@ -67,6 +74,7 @@ app.use('/api/library', libraryRoutes);
 app.use('/api/wishlist', wishlistRoutes);
 app.use('/api/upload', uploadRoutes);
 app.use('/api/email', emailRoutes);
+app.use('/api/admin', authLimiter, adminRoutes);
 
 // ✅ Serve frontend
 app.get('*', (req, res) => {
