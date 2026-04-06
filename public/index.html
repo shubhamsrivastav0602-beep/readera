@@ -824,8 +824,8 @@
                         <span>Cart</span>
                         <span class="cart-count" id="cart-count">0</span>
                     </a>
-                    <a href="auth.html" class="btn btn-ghost" id="auth-link">Log in</a>
-                    <a href="#" class="btn btn-outline" id="logout-link" style="display: none;">Log out</a>
+                    <a href="auth.html" class="btn btn-ghost guest-only" id="auth-link">Log in</a>
+                    <a href="#" class="btn btn-outline user-only readera-logout" id="logout-link" style="display: none;">Log out</a>
                 </div>
             </div>
         </div>
@@ -934,6 +934,7 @@
     </footer>
 
     <script src="js/main.js"></script>
+    <script src="js/api.js"></script>
     <script>
         function updateCartCount() {
             const cart = JSON.parse(localStorage.getItem('cart') || '[]');
@@ -942,38 +943,23 @@
         }
 
         function updateAuthUI() {
-            const token = localStorage.getItem('token');
-            const authLink = document.getElementById('auth-link');
-            const logoutLink = document.getElementById('logout-link');
+            const authed = !!localStorage.getItem('token');
             const libraryLink = document.getElementById('library-link');
             const profileLink = document.getElementById('profile-link');
             const heroLibrary = document.getElementById('hero-library-cta');
 
-            if (token) {
-                if (authLink) authLink.style.display = 'none';
-                if (logoutLink) logoutLink.style.display = 'inline-flex';
+            AuthService.refreshNav();
+
+            if (authed) {
                 if (libraryLink) libraryLink.style.display = 'list-item';
                 if (profileLink) profileLink.style.display = 'list-item';
                 if (heroLibrary) heroLibrary.style.display = 'inline-flex';
             } else {
-                if (authLink) authLink.style.display = 'inline-flex';
-                if (logoutLink) logoutLink.style.display = 'none';
                 if (libraryLink) libraryLink.style.display = 'none';
                 if (profileLink) profileLink.style.display = 'none';
                 if (heroLibrary) heroLibrary.style.display = 'none';
             }
         }
-
-        document.getElementById('logout-link')?.addEventListener('click', (e) => {
-            e.preventDefault();
-            localStorage.removeItem('token');
-            localStorage.removeItem('user');
-            localStorage.removeItem('userName');
-            localStorage.removeItem('userEmail');
-            localStorage.removeItem('userPhone');
-            updateAuthUI();
-            window.location.href = 'index.html';
-        });
 
         function searchBooks() {
             const query = document.getElementById('searchInput').value.trim();

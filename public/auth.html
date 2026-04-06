@@ -323,11 +323,9 @@
         </p>
     </div>
 
+    <script src="js/api.js"></script>
     <script>
-        // ========== EMAIL + PASSWORD BASED AUTH SYSTEM ==========
-
-        // Load users from localStorage
-        let users = JSON.parse(localStorage.getItem('users') || '[]');
+        // Server-backed auth (JWT). Cart & checkout require the same session as /api/auth.
 
         function showMsg(id, text, isOk) {
             const el = document.getElementById(id);
@@ -389,8 +387,23 @@
             });
         });
 
+        function persistSession(data) {
+            if (!data.token || !data.user) return;
+            AuthService.setSession(data.token, data.user);
+            localStorage.setItem(
+                'currentUser',
+                JSON.stringify({
+                    id: data.user.id,
+                    name: data.user.name,
+                    email: data.user.email,
+                    isLoggedIn: true,
+                    loginTime: new Date().toISOString(),
+                }),
+            );
+        }
+
         // ========== SIGNUP ==========
-        document.getElementById('form-signup').addEventListener('submit', (e) => {
+        document.getElementById('form-signup').addEventListener('submit', async (e) => {
             e.preventDefault();
             clearMsg('signup-msg');
 
@@ -419,38 +432,37 @@
                 return;
             }
 
-            users = JSON.parse(localStorage.getItem('users') || '[]');
-
-            const exists = users.find(u => u.email === email);
-            if (exists) {
-                showMsg('signup-msg', 'User already exists! Please login instead.', false);
-                return;
+            const btn = document.getElementById('btn-signup');
+            btn.disabled = true;
+            try {
+                const res = await fetch('/api/auth/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, email, password }),
+                });
+                const data = await res.json().catch(() => ({}));
+                if (!res.ok) {
+                    showMsg('signup-msg', data.error || data.message || 'Could not create account', false);
+                    return;
+                }
+                persistSession(data);
+                showMsg('signup-msg', `Welcome, ${data.user.name}! Redirecting…`, true);
+                setTimeout(() => {
+                    window.location.href = 'profile.html';
+                }, 800);
+            } catch (err) {
+                showMsg(
+                    'signup-msg',
+                    'Network error. If this site is opened as static files only, start the Readera server.',
+                    false,
+                );
+            } finally {
+                btn.disabled = false;
             }
-
-            const newUser = {
-                id: Date.now().toString(),
-                name: name,
-                email: email,
-                password: password,
-                createdAt: new Date().toISOString()
-            };
-            users.push(newUser);
-            localStorage.setItem('users', JSON.stringify(users));
-
-            showMsg('signup-msg', 'Account created successfully! You can now login.', true);
-
-            document.getElementById('su-name').value = '';
-            document.getElementById('su-email').value = '';
-            document.getElementById('su-password').value = '';
-            document.getElementById('su-password2').value = '';
-
-            setTimeout(() => {
-                document.querySelector('[data-tab="login"]').click();
-            }, 1500);
         });
 
         // ========== LOGIN ==========
-        document.getElementById('form-login').addEventListener('submit', (e) => {
+        document.getElementById('form-login').addEventListener('submit', async (e) => {
             e.preventDefault();
             clearMsg('login-msg');
 
@@ -462,45 +474,36 @@
                 return;
             }
 
-            users = JSON.parse(localStorage.getItem('users') || '[]');
-
-            const user = users.find(u => u.email === email);
-
-            if (!user) {
-                showMsg('login-msg', 'User not found! Please sign up first.', false);
-                return;
+            const btn = document.getElementById('btn-login');
+            btn.disabled = true;
+            try {
+                const res = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password }),
+                });
+                const data = await res.json().catch(() => ({}));
+                if (!res.ok) {
+                    showMsg('login-msg', data.error || data.message || 'Login failed', false);
+                    return;
+                }
+                persistSession(data);
+                showMsg('login-msg', `Welcome back, ${data.user.name}! Redirecting…`, true);
+                setTimeout(() => {
+                    window.location.href = 'profile.html';
+                }, 600);
+            } catch (err) {
+                showMsg('login-msg', 'Network error. Is the Readera server running?', false);
+            } finally {
+                btn.disabled = false;
             }
-
-            if (user.password !== password) {
-                showMsg('login-msg', 'Wrong password! Please try again.', false);
-                return;
-            }
-
-            // Save session
-            const currentUser = {
-                id: user.id,
-                name: user.name,
-                email: user.email,
-                isLoggedIn: true,
-                loginTime: new Date().toISOString()
-            };
-            localStorage.setItem('currentUser', JSON.stringify(currentUser));
-
-            showMsg('login-msg', `Welcome back, ${user.name}! Redirecting...`, true);
-
-            setTimeout(() => {
-                window.location.href = 'profile.html';
-            }, 1000);
         });
 
-        // ========== FIXED: CHECK IF ALREADY LOGGED IN - NO CONFIRM BOX ==========
-        const loggedInUser = JSON.parse(localStorage.getItem('currentUser') || 'null');
-        if (loggedInUser && loggedInUser.isLoggedIn) {
-            // Direct redirect without asking
-            window.location.href = 'profile.html';
-        }
-
-        console.log('✅ Auth System Ready!');
+        document.addEventListener('DOMContentLoaded', () => {
+            if (localStorage.getItem('token')) {
+                window.location.replace('profile.html');
+            }
+        });
     </script>
 </body>
 

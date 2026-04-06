@@ -101,7 +101,8 @@ const AuthService = {
         localStorage.removeItem('userName');
         localStorage.removeItem('userEmail');
         localStorage.removeItem('userPhone');
-        window.location.href = '/index.html';
+        localStorage.removeItem('currentUser');
+        window.location.href = 'index.html';
     },
 
     refreshNav: () => {
@@ -140,4 +141,12 @@ function showToast(message, type = 'success') {
 document.addEventListener('DOMContentLoaded', () => {
     CartService.updateCartCount();
     AuthService.refreshNav();
+});
+
+document.body.addEventListener('click', (e) => {
+    const a = e.target.closest('a.readera-logout');
+    if (a) {
+        e.preventDefault();
+        AuthService.logout();
+    }
 });

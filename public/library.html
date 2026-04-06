@@ -69,7 +69,8 @@
         </div>
         <div class="nav-user">
             <a href="cart.html">Cart (<span id="cart-count">0</span>)</a>
-            <a href="auth.html">Login</a>
+            <a href="auth.html" class="guest-only">Log in</a>
+            <a href="#" class="user-only readera-logout" style="display: none;">Log out</a>
         </div>
     </nav>
 
@@ -119,6 +120,7 @@
             renderLibrary();
         });
     </script>
+    <script src="js/api.js"></script>
     <script src="js/main.js"></script>
 </body>
 

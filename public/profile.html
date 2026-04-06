@@ -17,22 +17,121 @@
             min-height: 100vh;
         }
 
+        body.dark-mode.account-body {
+            background: #0f172a;
+            color: #e2e8f0;
+        }
+
+        body.dark-mode.account-body .acct-hero {
+            box-shadow: 0 12px 32px rgba(0, 0, 0, 0.4);
+        }
+
+        body.dark-mode.account-body .acct-card,
+        body.dark-mode.account-body .book-tile {
+            background: #1e293b;
+            border-color: #334155;
+        }
+
+        body.dark-mode.account-body .acct-dl dd,
+        body.dark-mode.account-body .section-head h2,
+        body.dark-mode.account-body .book-tile .t {
+            color: #f1f5f9;
+        }
+
+        body.dark-mode.account-body .empty-hint,
+        body.dark-mode.account-body .acct-dl dt,
+        body.dark-mode.account-body .book-tile .a {
+            color: #94a3b8;
+        }
+
+        body.dark-mode.account-body .order-table {
+            border-color: #334155;
+        }
+
+        body.dark-mode.account-body .order-table th {
+            background: #0f172a;
+            color: #94a3b8;
+        }
+
+        body.dark-mode.account-body .order-table td {
+            border-bottom-color: #334155;
+        }
+
         .acct-nav {
-            background: #fff;
-            border-bottom: 1px solid #e2e8f0;
+            background: var(--readera-nav-bg, #fff);
+            border-bottom: 1px solid var(--readera-nav-border, #e2e8f0);
             padding: 0.75rem 1.25rem;
             display: flex;
             flex-wrap: wrap;
             align-items: center;
             justify-content: space-between;
             gap: 0.75rem;
+            --readera-nav-bg: #fff;
+            --readera-nav-border: #e2e8f0;
+            --readera-nav-brand: #0a2540;
+            --readera-nav-muted: #64748b;
+            --readera-nav-text: #475569;
+            --readera-pill-bg: #f1f5f9;
+            --readera-pill-text: #0f172a;
+            --readera-heading-border: #e2e8f0;
+        }
+
+        body.dark-mode .acct-nav {
+            --readera-nav-bg: #111827;
+            --readera-nav-border: #1e293b;
+            --readera-nav-brand: #f8fafc;
+            --readera-nav-muted: #94a3b8;
+            --readera-nav-text: #cbd5e1;
+            --readera-pill-bg: #1e293b;
+            --readera-pill-text: #f1f5f9;
+            --readera-heading-border: #334155;
         }
 
         .acct-nav a.brand {
             font-weight: 700;
             font-size: 1.2rem;
-            color: #0a2540;
+            color: var(--readera-nav-brand);
             text-decoration: none;
+        }
+
+        .acct-nav-right {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 0.65rem 1.25rem;
+        }
+
+        .acct-profile-heading {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 0.1rem;
+            padding-right: 1rem;
+            margin-right: 0.25rem;
+            border-right: 1px solid var(--readera-heading-border);
+            min-height: 2.25rem;
+            justify-content: center;
+        }
+
+        .acct-page-label {
+            font-size: 0.65rem;
+            text-transform: uppercase;
+            letter-spacing: 0.14em;
+            color: var(--readera-nav-muted);
+            font-weight: 700;
+        }
+
+        .acct-user-pill {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--readera-pill-text);
+            background: var(--readera-pill-bg);
+            padding: 0.2rem 0.65rem;
+            border-radius: 999px;
+            max-width: 14rem;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
 
         .acct-nav-links {
@@ -43,7 +142,7 @@
         }
 
         .acct-nav-links a {
-            color: #475569;
+            color: var(--readera-nav-text);
             text-decoration: none;
             font-size: 0.9rem;
             font-weight: 500;
@@ -51,6 +150,23 @@
 
         .acct-nav-links a:hover {
             color: #8B4513;
+        }
+
+        body.dark-mode .acct-nav-links a:hover {
+            color: #fbbf24;
+        }
+
+        @media (max-width: 640px) {
+            .acct-profile-heading {
+                align-items: flex-start;
+                border-right: none;
+                padding-right: 0;
+                margin-right: 0;
+                width: 100%;
+                flex-direction: row;
+                align-items: center;
+                gap: 0.5rem;
+            }
         }
 
         .acct-wrap {
@@ -314,13 +430,19 @@
 <body class="account-body">
     <header class="acct-nav">
         <a class="brand" href="index.html">Readera</a>
-        <nav class="acct-nav-links">
-            <a href="browse.html">Browse</a>
-            <a href="library.html">Library</a>
-            <a href="cart.html">Cart</a>
-            <a href="auth.html" class="guest-only">Log in</a>
-            <a href="#" id="logout-btn" class="user-only">Log out</a>
-        </nav>
+        <div class="acct-nav-right">
+            <div class="acct-profile-heading">
+                <span class="acct-page-label">Profile</span>
+                <span class="acct-user-pill" id="nav-profile-name">—</span>
+            </div>
+            <nav class="acct-nav-links">
+                <a href="browse.html">Browse</a>
+                <a href="library.html">Library</a>
+                <a href="cart.html">Cart</a>
+                <a href="auth.html" class="guest-only">Log in</a>
+                <a href="#" id="logout-btn" class="user-only readera-logout">Log out</a>
+            </nav>
+        </div>
     </header>
 
     <main class="acct-wrap">
@@ -380,44 +502,53 @@
     </main>
 
     <script src="js/api.js"></script>
+    <script src="js/main.js"></script>
     <script>
-        // Remove all API-dependent code and use localStorage instead
-
-        document.getElementById('logout-btn').addEventListener('click', (e) => {
-            e.preventDefault();
-            localStorage.removeItem('currentUser');
-            window.location.href = 'auth.html';
-        });
-
-        // Check if user is logged in
-        const currentUser = JSON.parse(localStorage.getItem('currentUser') || 'null');
-
-        if (!currentUser || !currentUser.isLoggedIn) {
-            window.location.href = 'auth.html';
+        function loadAccountUser() {
+            if (AuthService.isAuthenticated()) {
+                return AuthService.getUser();
+            }
+            const legacy = JSON.parse(localStorage.getItem('currentUser') || 'null');
+            if (legacy && legacy.isLoggedIn) {
+                return { id: legacy.id, name: legacy.name, email: legacy.email };
+            }
+            return null;
         }
 
-        // Display user info
-        const name = currentUser.name || 'Reader';
-        const email = currentUser.email || '';
-
-        document.getElementById('hero-name').textContent = name;
-        document.getElementById('hero-initial').textContent = (name.charAt(0) || 'R').toUpperCase();
-        document.getElementById('hero-email').innerHTML = email ? '📧 ' + email : '';
-        document.getElementById('hero-phone').innerHTML = '';
-        document.getElementById('hero-since').innerHTML = '📅 Member since ' + new Date().toLocaleDateString();
-
-        document.getElementById('d-email').textContent = email || '—';
-        document.getElementById('d-phone').textContent = '—';
-        document.getElementById('d-id').textContent = currentUser.id || '—';
-
-        // Simple library display
-        const library = JSON.parse(localStorage.getItem('library') || '[]');
-        const booksContainer = document.getElementById('books-container');
-
-        if (library.length === 0) {
-            booksContainer.innerHTML = '<p class="empty-hint">No books yet. <a href="browse.html">Browse the catalog</a> to add books to your library.</p>';
+        const me = loadAccountUser();
+        if (!me) {
+            window.location.replace('auth.html');
         } else {
-            booksContainer.innerHTML = '<div class="books-grid-acct">' + library.map((b, i) => `
+            const name = me.name || 'Reader';
+            const email = me.email || '';
+            const uid = me.id != null ? String(me.id) : '—';
+
+            document.getElementById('nav-profile-name').textContent = name;
+            AuthService.refreshNav();
+
+            document.getElementById('hero-name').textContent = name;
+            document.getElementById('hero-initial').textContent = (name.charAt(0) || 'R').toUpperCase();
+            document.getElementById('hero-email').innerHTML = email ? '📧 ' + email : '';
+            document.getElementById('hero-phone').innerHTML = '';
+            document.getElementById('hero-since').innerHTML =
+                '📅 Member since ' + new Date().toLocaleDateString();
+
+            document.getElementById('d-email').textContent = email || '—';
+            document.getElementById('d-phone').textContent = '—';
+            document.getElementById('d-id').textContent = uid;
+
+            const library = JSON.parse(localStorage.getItem('library') || '[]');
+            const booksContainer = document.getElementById('books-container');
+
+            if (library.length === 0) {
+                booksContainer.innerHTML =
+                    '<p class="empty-hint">No books yet. <a href="browse.html">Browse the catalog</a> to add books to your library.</p>';
+            } else {
+                booksContainer.innerHTML =
+                    '<div class="books-grid-acct">' +
+                    library
+                        .map(
+                            (b, i) => `
             <article class="book-tile">
                 <div class="bd">
                     <div class="t">${b.title || 'Book ' + (i + 1)}</div>
@@ -427,14 +558,17 @@
                     </div>
                 </div>
             </article>
-        `).join('') + '</div>';
-        }
+        `,
+                        )
+                        .join('') +
+                    '</div>';
+            }
 
-        // Simple orders display
-        const ordersContainer = document.getElementById('orders-container');
-        ordersContainer.innerHTML = '<p class="empty-hint">No orders yet. Purchases will appear here.</p>';
+            const ordersContainer = document.getElementById('orders-container');
+            ordersContainer.innerHTML =
+                '<p class="empty-hint">No orders yet. Purchases will appear here.</p>';
+        }
     </script>
-    <script src="js/main.js"></script>
 </body>
 
 </html>

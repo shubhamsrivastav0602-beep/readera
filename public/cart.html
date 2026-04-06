@@ -146,7 +146,8 @@
         </div>
         <div class="nav-user">
             <a href="cart.html">Cart (<span id="cart-count">0</span>)</a>
-            <a href="auth.html">Login</a>
+            <a href="auth.html" class="guest-only">Log in</a>
+            <a href="#" class="user-only readera-logout" style="display: none;">Log out</a>
         </div>
     </nav>
 
@@ -299,19 +300,23 @@
                     currency: order.currency || 'INR',
                     name: 'Readera',
                     description: `Purchase of ${cart.length} book(s)`,
-                    order_id: order.id,
+                    order_id: order.order_id,
                     handler: async function (response) {
-                        const verifyRes = await fetch('/api/verify-payment', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({
-                                razorpay_order_id: response.razorpay_order_id,
-                                razorpay_payment_id: response.razorpay_payment_id,
-                                razorpay_signature: response.razorpay_signature,
-                                bookIds
-                            })
-                        });
-                        const result = await verifyRes.json().catch(() => ({}));
+                        let result;
+                        try {
+                            result = await fetchAPI('/orders/verify-payment', {
+                                method: 'POST',
+                                body: JSON.stringify({
+                                    razorpay_order_id: response.razorpay_order_id,
+                                    razorpay_payment_id: response.razorpay_payment_id,
+                                    razorpay_signature: response.razorpay_signature,
+                                    bookIds
+                                })
+                            });
+                        } catch (verifyErr) {
+                            alert("❌ Payment verification failed: " + (verifyErr.message || "Unknown error"));
+                            return;
+                        }
                         if (result.success) {
                             let library = JSON.parse(localStorage.getItem('library') || '[]');
                             for (let i = 0; i < cart.length; i++) {
