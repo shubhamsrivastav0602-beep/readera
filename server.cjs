@@ -1,153 +1,155 @@
 const express = require('express');
+const mongoose = require('mongoose');
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
 const cors = require('cors');
-const path = require('path');
-const dotenv = require('dotenv');
-const { createClient } = require('@libsql/client');
-const rateLimit = require('express-rate-limit');
+const puppeteer = require('puppeteer');
+const PDFDocument = require('pdfkit');
 const fs = require('fs');
-
-function loadEnvUtf16IfNeeded() {
-    try {
-        const envPath = path.join(__dirname, '.env');
-        if (!fs.existsSync(envPath)) return;
-
-        // If dotenv already loaded at least one expected key, skip.
-        if (process.env.RAZORPAY_KEY_ID || process.env.TURSO_DATABASE_URL) return;
-
-        const raw = fs.readFileSync(envPath);
-        // Heuristic: UTF-16 LE typically has lots of NUL bytes.
-        let nul = 0;
-        for (let i = 1; i < Math.min(raw.length, 256); i += 2) {
-            if (raw[i] === 0x00) nul++;
-        }
-        if (nul < 8) return;
-
-        const text = raw.toString('utf16le').replace(/^\uFEFF/, '');
-        text.split(/\r?\n/).forEach((line) => {
-            const trimmed = line.trim();
-            if (!trimmed || trimmed.startsWith('#')) return;
-            const eq = trimmed.indexOf('=');
-            if (eq <= 0) return;
-            const key = trimmed.slice(0, eq).trim();
-            const val = trimmed.slice(eq + 1).trim();
-            if (!process.env[key]) process.env[key] = val;
-        });
-    } catch (e) {
-        console.warn('[env] utf16 loader skipped:', e.message);
-    }
-}
-
-dotenv.config();
-loadEnvUtf16IfNeeded();
+const axios = require('axios');
 
 const app = express();
-const PORT = process.env.PORT || 3000;
-
-function resolveDbConfig() {
-    const url = (process.env.TURSO_DATABASE_URL || '').trim();
-    const authToken = (process.env.TURSO_AUTH_TOKEN || '').trim();
-
-    // Local/dev fallback if Turso URL not configured
-    if (!url) {
-        return {
-            url: `file:${path.join(__dirname, 'database.sqlite')}`,
-        };
-    }
-
-    // Turso config
-    return authToken ? { url, authToken } : { url };
-}
-
-const dbConfig = resolveDbConfig();
-const db = createClient(dbConfig);
-
-async function runMigrations() {
-    const statements = [
-        'ALTER TABLE users ADD COLUMN phone TEXT',
-        'CREATE UNIQUE INDEX IF NOT EXISTS idx_users_phone ON users(phone) WHERE phone IS NOT NULL',
-        'ALTER TABLE books ADD COLUMN pdf_url TEXT',
-        'ALTER TABLE books ADD COLUMN text_url TEXT',
-        'ALTER TABLE books ADD COLUMN full_content_text TEXT',
-        'ALTER TABLE books ADD COLUMN preview_content TEXT',
-        'ALTER TABLE books ADD COLUMN publisher TEXT',
-        'ALTER TABLE books ADD COLUMN pages INTEGER',
-        'ALTER TABLE books ADD COLUMN language TEXT DEFAULT "English"',
-        'ALTER TABLE books ADD COLUMN source_name TEXT',
-        'ALTER TABLE books ADD COLUMN source_url TEXT',
-        'ALTER TABLE books ADD COLUMN legal_notice TEXT',
-        'ALTER TABLE books ADD COLUMN external_pdf_url TEXT',
-        'ALTER TABLE books ADD COLUMN external_text_url TEXT',
-        'ALTER TABLE books ADD COLUMN is_public_domain INTEGER DEFAULT 0',
-        'ALTER TABLE orders ADD COLUMN razorpay_payment_id TEXT',
-        'ALTER TABLE orders ADD COLUMN updated_at DATETIME DEFAULT CURRENT_TIMESTAMP'
-    ];
-    for (const sql of statements) {
-        try {
-            await db.execute(sql);
-        } catch (e) {
-            const msg = String(e && e.message ? e.message : e);
-            if (!/duplicate column|already exists/i.test(msg)) {
-                console.warn('[migrate]', msg);
-            }
-        }
-    }
-}
-
-const authLimiter = rateLimit({
-    windowMs: 15 * 60 * 1000,
-    max: 40,
-    standardHeaders: true,
-    legacyHeaders: false,
-    message: { success: false, error: 'Too many attempts. Try again in a few minutes.' },
-});
-
 app.use(cors());
-app.use(express.json({ limit: '100kb' }));
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.json());
 
-// Make db available in routes
-app.use((req, res, next) => {
-    req.db = db;
-    next();
+// MongoDB Connection
+mongoose.connect('mongodb://localhost:27017/bookautomation', {
+    useNewUrlParser: true,
+    useUnifiedTopology: true
 });
 
-// ✅ ROUTES
-const authRoutes = require('./routes/auth');
-const bookRoutes = require('./routes/books');
-const orderRoutes = require('./routes/orders');
-const libraryRoutes = require('./routes/library');
-const wishlistRoutes = require('./routes/wishlist');
-const uploadRoutes = require('./routes/upload');
-const emailRoutes = require('./routes/email');
-const adminRoutes = require('./routes/admin');
-
-app.use('/api/auth', authLimiter, authRoutes);
-app.use('/api/books', bookRoutes);
-app.use('/api/orders', orderRoutes);
-app.use('/api/library', libraryRoutes);
-app.use('/api/wishlist', wishlistRoutes);
-app.use('/api/upload', uploadRoutes);
-app.use('/api/email', emailRoutes);
-app.use('/api/admin', authLimiter, adminRoutes);
-
-// ✅ Serve frontend
-app.get('*', (req, res) => {
-    if (!req.path.startsWith('/api')) {
-        res.sendFile(path.join(__dirname, 'public', 'index.html'));
-    } else {
-        res.status(404).json({ error: 'Endpoint not found' });
-    }
+// User Schema
+const UserSchema = new mongoose.Schema({
+    email: { type: String, unique: true, required: true },
+    password: { type: String, required: true },
+    createdAt: { type: Date, default: Date.now }
 });
+const User = mongoose.model('User', UserSchema);
 
-// ✅ Start server
-(async () => {
+// Book Schema
+const BookSchema = new mongoose.Schema({
+    title: String,
+    author: String,
+    isbn: String,
+    pages: Number,
+    genre: String,
+    summary: String,
+    coverUrl: String,
+    pdfPath: String
+});
+const Book = mongoose.model('Book', BookSchema);
+
+// ========== AUTH FIXED ==========
+app.post('/api/signup', async (req, res) => {
     try {
-        await runMigrations();
-    } catch (e) {
-        console.warn('[migrate] skipped:', e.message);
+        const { email, password } = req.body;
+        const hashedPassword = await bcrypt.hash(password, 10);
+        const user = new User({ email, password: hashedPassword });
+        await user.save();
+        const token = jwt.sign({ userId: user._id }, 'secretkey', { expiresIn: '7d' });
+        res.json({ success: true, token, message: 'Signup successful!' });
+    } catch (error) {
+        res.status(400).json({ success: false, message: error.message });
     }
-    app.listen(PORT, () => {
-        console.log(`🚀 Server running on http://localhost:${PORT}`);
-        console.log(dbConfig.url.startsWith('file:') ? '📡 Using local SQLite database' : '📡 Using Turso database');
+});
+
+app.post('/api/login', async (req, res) => {
+    try {
+        const { email, password } = req.body;
+        const user = await User.findOne({ email });
+        if (!user) return res.status(401).json({ success: false, message: 'User not found' });
+
+        const valid = await bcrypt.compare(password, user.password);
+        if (!valid) return res.status(401).json({ success: false, message: 'Wrong password' });
+
+        const token = jwt.sign({ userId: user._id }, 'secretkey', { expiresIn: '7d' });
+        res.json({ success: true, token, message: 'Login successful!' });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
+// ========== BOOK SUMMARY GENERATION (AI Mock) ==========
+async function generateSummary(title, author) {
+    // Tu yahan pe OpenAI API laga sakta hai
+    return `
+    <div style="font-family: Georgia, serif; max-width: 600px; margin: auto;">
+      <h1>${title}</h1>
+      <h2>by ${author}</h2>
+      <div class="hook">✨ "${title}" is a breathtaking romantic journey...</div>
+      <h3>📖 Love Story Arc</h3>
+      <p>Two souls destined to meet, torn apart by circumstances, reunited by love...</p>
+      <h3>🎭 Main Characters</h3>
+      <ul><li><strong>Hero:</strong> Brooding, mysterious, secretly soft-hearted</li>
+      <li><strong>Heroine:</strong> Strong-willed, independent, afraid to love</li></ul>
+      <h3>🌶️ Steam Rating: 3/5</h3>
+      <h3>😢 Tear Score: 4/5</h3>
+      <h3>📝 Full Summary</h3>
+      <p>${title} tells the story of two individuals who...</p>
+      <blockquote>"Love is not about finding the right person, but creating a right relationship."</blockquote>
+      <div class="verdict">⭐ VERDICT: A must-read for romance lovers!</div>
+    </div>
+  `;
+}
+
+// ========== PDF GENERATION ==========
+async function generatePDF(bookData, htmlContent) {
+    const doc = new PDFDocument({ margin: 50, size: 'A4' });
+    const filename = `${bookData.title.replace(/ /g, '_')}_summary.pdf`;
+    const stream = fs.createWriteStream(`./pdfs/${filename}`);
+    doc.pipe(stream);
+
+    // Add cover image if exists
+    if (bookData.coverUrl) {
+        try {
+            const response = await axios.get(bookData.coverUrl, { responseType: 'arraybuffer' });
+            const imageBuffer = Buffer.from(response.data);
+            doc.image(imageBuffer, 50, 50, { width: 100 });
+            doc.moveDown(8);
+        } catch (e) { console.log('Cover not found'); }
+    }
+
+    doc.font('Times-Roman').fontSize(24).text(bookData.title, { align: 'center' });
+    doc.moveDown();
+    doc.fontSize(14).text(`by ${bookData.author}`, { align: 'center' });
+    doc.moveDown();
+    doc.fontSize(12).text(`ISBN: ${bookData.isbn} | Pages: ${bookData.pages} | Genre: ${bookData.genre}`);
+    doc.moveDown(2);
+
+    // Simple HTML to text conversion
+    const plainText = htmlContent.replace(/<[^>]*>/g, '');
+    doc.fontSize(11).text(plainText, { align: 'justify' });
+
+    doc.end();
+
+    return new Promise((resolve) => {
+        stream.on('finish', () => resolve(filename));
     });
-})();
+}
+
+// ========== BULK UPLOAD ENDPOINT ==========
+app.post('/api/bulk-upload', async (req, res) => {
+    const { books, genre } = req.body;
+    const results = [];
+
+    for (const book of books) {
+        const summaryHtml = await generateSummary(book.title, book.author);
+        const pdfFile = await generatePDF({ ...book, genre }, summaryHtml);
+
+        const newBook = new Book({
+            ...book,
+            genre,
+            summary: summaryHtml,
+            pdfPath: `/pdfs/${pdfFile}`
+        });
+        await newBook.save();
+        results.push({ title: book.title, pdf: pdfFile });
+    }
+
+    res.json({ success: true, count: results.length, results });
+});
+
+// Serve PDFs statically
+app.use('/pdfs', express.static('pdfs'));
+
+app.listen(5000, () => console.log('Server running on port 5000'));

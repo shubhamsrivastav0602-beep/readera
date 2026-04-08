@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Book Summary - Readera</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #f5f7fa;
+            padding: 20px;
+        }
+
+        .summary-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .download-btn {
+            background: #8B4513;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 20px 0;
+        }
+
+        .download-btn:hover {
+            background: #6b3410;
+        }
+
+        .back-btn {
+            background: #e2e8f0;
+            padding: 12px 24px;
+            border-radius: 10px;
+            text-decoration: none;
+            color: #333;
+            margin-right: 10px;
+        }
+
+        body.dark-mode {
+            background: #0f172a;
+        }
+
+        body.dark-mode .summary-container {
+            background: #1f2937;
+            color: #e2e8f0;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="summary-container" id="summaryContainer">
+        <div style="margin-bottom: 20px;">
+            <a href="javascript:history.back()" class="back-btn">← Back to Book</a>
+            <button class="download-btn" id="downloadPdfBtn">📥 Download as PDF</button>
+        </div>
+        <div id="summaryContent">Loading summary...</div>
+    </div>
+
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const bookId = urlParams.get('id');
+        const genre = urlParams.get('genre') || 'fiction';
+
+        async function loadSummary() {
+            // Fetch book details from your existing API
+            const res = await fetch('/books.json');
+            const books = await res.json();
+            const book = books.find(b => b.id == bookId);
+
+            if (!book) {
+                document.getElementById('summaryContent').innerHTML = '<p>Book not found</p>';
+                return;
+            }
+
+            // Generate summary
+            const summaryRes = await fetch('/api/generate-summary', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    bookId: book.id,
+                    genre: genre,
+                    title: book.title,
+                    author: book.author,
+                    isbn: book.isbn,
+                    pages: book.pages
+                })
+            });
+
+            const data = await summaryRes.json();
+            document.getElementById('summaryContent').innerHTML = data.summary;
+
+            // Store summary for PDF download
+            window.currentSummary = data.summary;
+            window.currentBook = book;
+        }
+
+        document.getElementById('downloadPdfBtn')?.addEventListener('click', async () => {
+            const pdfRes = await fetch('/api/generate-pdf', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    bookId: window.currentBook.id,
+                    genre: genre,
+                    title: window.currentBook.title,
+                    author: window.currentBook.author,
+                    isbn: window.currentBook.isbn,
+                    pages: window.currentBook.pages,
+                    summary: window.currentSummary
+                })
+            });
+
+            const data = await pdfRes.json();
+            if (data.success) {
+                window.open(data.pdfUrl, '_blank');
+            }
+        });
+
+        loadSummary();
+    </script>
+</body>
+
+</html>

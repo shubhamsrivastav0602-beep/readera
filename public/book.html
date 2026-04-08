@@ -63,6 +63,10 @@
             cursor: pointer;
             font-size: 1rem;
             margin-right: 10px;
+            margin-bottom: 10px;
+            display: inline-block;
+            text-decoration: none;
+            text-align: center;
         }
 
         .btn-primary {
@@ -75,13 +79,23 @@
             color: white;
         }
 
+        .btn-outline {
+            background: transparent;
+            border: 2px solid #8B4513;
+            color: #8B4513;
+        }
+
+        .btn-outline:hover {
+            background: #8B4513;
+            color: white;
+        }
+
         .preview-section,
         .full-section {
             padding: 30px;
             line-height: 1.8;
         }
 
-        /* Reading sheet (open-page feel) */
         .reading-sheet {
             background: #fffaf2;
             border: 1px solid rgba(15, 23, 42, 0.08);
@@ -113,7 +127,6 @@
             pointer-events: none;
         }
 
-        /* ✅ Fix: Proper content formatting */
         .book-content {
             white-space: pre-wrap;
             word-wrap: break-word;
@@ -137,6 +150,24 @@
             padding: 15px;
             border-left: 4px solid #f39c12;
             margin-bottom: 20px;
+        }
+
+        /* Dark mode support */
+        body.dark-mode .book-container {
+            background: #1f2937;
+        }
+
+        body.dark-mode .book-header {
+            background: #111827;
+        }
+
+        body.dark-mode .book-title {
+            color: #fbbf24;
+        }
+
+        body.dark-mode .reading-sheet {
+            background: #0f172a;
+            border-color: #334155;
         }
 
         @media (max-width: 768px) {
@@ -200,17 +231,29 @@
             window.location.href = 'cart.html';
         };
 
+        // ========== AI SUMMARY FUNCTION (ADDED) ==========
+        window.viewSummary = function () {
+            const urlParams = new URLSearchParams(window.location.search);
+            const bookId = urlParams.get('id');
+
+            // Try to get genre from book data or default to fiction
+            let genre = 'fiction';
+            const genreElement = document.getElementById('bookGenre');
+            if (genreElement) {
+                genre = genreElement.innerText.toLowerCase();
+            }
+
+            window.location.href = `summary.html?id=${bookId}&genre=${genre}`;
+        };
+
         function checkPurchaseStatus(bookId) {
             const library = JSON.parse(localStorage.getItem('library') || '[]');
             return library.some(book => book.id === bookId);
         }
 
-        // ✅ Format content with proper line breaks
         function formatContent(text) {
             if (!text) return '';
-            // Convert markdown style headers
             let formatted = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-            // Convert line breaks to <br> or paragraphs
             formatted = formatted.replace(/\n\n/g, '</p><p>');
             formatted = formatted.replace(/\n/g, '<br>');
             return `<p>${formatted}</p>`;
@@ -224,6 +267,13 @@
                 if (m === '>') return '&gt;';
                 return m;
             });
+        }
+
+        // Detect genre from book data
+        function detectGenre(book) {
+            if (book.genre) return book.genre;
+            if (book.categories && book.categories.length > 0) return book.categories[0];
+            return 'fiction';
         }
 
         async function loadBook() {
@@ -256,11 +306,11 @@
 
                 const purchased = checkPurchaseStatus(book.id);
                 const isFree = book.price === 0;
+                const bookGenre = detectGenre(book);
 
                 let contentHtml = '';
 
                 if (purchased || isFree) {
-                    // ✅ Full content with proper formatting
                     const fullText = book.full_content_text || book.description || 'Full content will appear here.';
                     contentHtml = `
                         <div class="full-section">
@@ -271,7 +321,6 @@
                         </div>
                     `;
                 } else {
-                    // Preview content
                     const previewText = (book.preview_content || book.previewText || book.description || 'No preview available.')
                         .toString()
                         .slice(0, 400);
@@ -298,6 +347,7 @@
                         <div class="book-info">
                             <h1 class="book-title">${escapeHtml(book.title)}</h1>
                             <p class="book-author">by ${escapeHtml(book.author) || 'Unknown'}</p>
+                            <p id="bookGenre" style="display: none;">${bookGenre}</p>
                             <div class="book-price">${book.price === 0 ? 'FREE' : '₹' + book.price}</div>
                             <div class="book-actions">
                                 ${!purchased && book.price > 0 ? `
@@ -308,6 +358,10 @@
                                     <a class="btn btn-secondary" href="reader.html?id=${book.id}" style="display:inline-block;text-align:center;">📖 Immersive reader</a>` : ''}
                                 ${book.price === 0 ? `<button class="btn btn-primary" onclick="addToCart(${book.id}, '${escapedTitle}', 0, '${coverUrl}')">📖 Read Now (FREE)</button>
                                     <a class="btn btn-secondary" href="reader.html?id=${book.id}" style="display:inline-block;text-align:center;">Immersive reader</a>` : ''}
+                                <!-- ✅ AI SUMMARY BUTTON - ADDED HERE -->
+                                <button class="btn btn-outline" onclick="viewSummary()" style="margin-top: 10px;">
+                                    <i class="fas fa-book-open"></i> 🤖 View AI Summary
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -332,5 +386,3 @@
 </body>
 
 </html>
-
-
