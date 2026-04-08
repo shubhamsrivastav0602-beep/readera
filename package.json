@@ -1,42 +1,50 @@
 {
   "name": "readera-ebook-store",
   "version": "1.0.0",
-  "description": "A comprehensive Kindle-like eBook store application.",
+  "description": "A comprehensive Kindle-like eBook store application with AI summaries and PDF generation.",
   "main": "server.cjs",
   "scripts": {
     "start": "node server.cjs",
-    "dev": "node server.cjs",
+    "dev": "nodemon server.cjs",
     "sync:books:strict": "node scripts/sync-ia-hindi-books.cjs 1000 strict-1000 250"
   },
   "dependencies": {
-    "@libsql/client": "^0.3.0",
     "axios": "^1.15.0",
-    "bcrypt": "^5.1.1",
     "bcryptjs": "^3.0.3",
     "cors": "^2.8.5",
     "csv-parser": "^3.2.0",
     "dotenv": "^16.6.1",
     "express": "^4.21.2",
     "express-rate-limit": "^8.3.2",
-    "groq-sdk": "^1.1.2",
     "jsonwebtoken": "^9.0.3",
     "multer": "^1.4.5-lts.1",
     "nodemailer": "^8.0.4",
-    "openai": "^6.33.0",
     "pdfkit": "^0.18.0",
-    "razorpay": "^2.9.6",
     "sqlite3": "^6.0.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.14"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/shubhamsrivastav0602-beep/readera.git"
   },
-  "keywords": [],
-  "author": "",
+  "keywords": [
+    "ebook",
+    "books",
+    "library",
+    "pdf",
+    "summary",
+    "ai"
+  ],
+  "author": "Shubham Srivastav",
   "license": "ISC",
   "type": "commonjs",
   "bugs": {
     "url": "https://github.com/shubhamsrivastav0602-beep/readera/issues"
   },
-  "homepage": "https://github.com/shubhamsrivastav0602-beep/readera#readme"
+  "homepage": "https://github.com/shubhamsrivastav0602-beep/readera#readme",
+  "engines": {
+    "node": ">=18.0.0"
+  }
 }

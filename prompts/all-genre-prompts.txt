@@ -34,3 +34,306 @@ Pages: {pages}
    - Page break after each book
    - Header: Book title + author
    - Footer: Page number + "Romance Reads"
+
+
+   ## SCI-FI BOOK SUMMARY PROMPT
+
+### Output Structure:
+
+**1. Book Cover + Futuristic Sketch**
+- Fetch cover
+- Generate text-art of spaceship/alien/cyborg/dimension
+
+**2. Summary Components**
+- 🌌 **Core Sci-Fi Concept**: (Time travel? AI uprising? Parallel universe?)
+- 🤖 **Technology Level**: (Hard sci-fi / Soft sci-fi / Cyberpunk / Space opera)
+- ⚡ **Mind-Blow Meter**: 🤯 out of 5
+- 🧠 **Scientific Accuracy**: 🔬 out of 5
+
+**3. World-Building Breakdown**
+- Setting (Year, Planet, Dimension)
+- Technology/Powers explained
+- Rules of this universe
+- Key factions/species
+
+**4. Plot Arc**
+- Inciting incident (what breaks normalcy)
+- Escalation (how stakes rise)
+- Climax twist
+- Resolution & implications
+
+**5. Full Summary** (350 words technical but readable)
+
+**6. Best Mind-Bending Quote**
+
+**7. Comparable To**: (Blade Runner? Dune? Expanse?)
+
+**PDF Format**:
+- Font: Courier New (tech feel)
+- Color: #00ffcc (cyber teal)
+- Binary code border
+
+
+
+## FICTION BOOK SUMMARY PROMPT
+
+### Output Structure:
+
+**1. Book Cover + Atmospheric Sketch**
+- Fetch cover
+- Text-art representing the novel's mood (rainy window, empty chair, crowded city)
+
+**2. Summary Components**
+- 🎭 **Genre Subtype**: (Literary / Historical / Magical realism / Domestic drama)
+- 📝 **Writing Style Meter**: (Simple ↔ Poetic ↔ Experimental)
+- ⏳ **Pacing**: (Slow burn ↔ Page-turner)
+- 🧠 **Deep Theme**: (Identity, grief, class, family, memory)
+
+**3. Character Portrait**
+- Protagonist's flaw
+- Antagonist (could be internal/external)
+- Supporting cast that matters
+
+**4. Plot Arc** (spoiler-light)
+- Opening image (where we start)
+- Inciting incident
+- Midpoint shift
+- Resolution (emotional, not plot)
+
+**5. Full Summary** (350 words focusing on emotional journey)
+
+**6. Best Passage** (2-3 lines that capture the prose)
+
+**7. If You Liked**: (similar literary authors)
+
+**PDF Format**:
+- Font: Garamond (classic literary)
+- Color: #2c3e50 (deep navy)
+- Simple elegant border
+
+
+
+
+## NON-FICTION BOOK SUMMARY PROMPT
+
+### Output Structure:
+
+**1. Book Cover + Visual Metaphor**
+- Fetch cover
+- Text-art representing core idea (lightbulb, puzzle piece, mountain)
+
+**2. Summary Components**
+- 🎯 **Central Thesis**: One sentence - what's the big claim?
+- 🔬 **Evidence Strength**: (Anecdotal ↔ Research-backed ↔ Data-driven)
+- 👥 **Target Audience**: Who MUST read this?
+- ⏱️ **Time Investment**: (Quick read ↔ Deep study)
+
+**3. Key Takeaways** (Top 5 bullet points)
+- Takeaway 1 with explanation
+- Takeaway 2 with example
+- Takeaway 3 with application
+- Takeaway 4 with counter-argument
+- Takeaway 5 with action step
+
+**4. Chapter-by-Chapter** (Brief - 1 line per chapter)
+
+**5. Full Summary** (350 words synthesizing the argument)
+
+**6. Best Quote** (most impactful statement)
+
+**7. Critique**: What's missing or debatable?
+
+**8. Actionable Advice**: How to apply in 24 hours
+
+**PDF Format**:
+- Font: Helvetica (clean)
+- Color: #3498db (trust blue)
+- Bullet points with checkmarks
+
+
+
+## BIOGRAPHY SUMMARY PROMPT
+
+### Output Structure:
+
+**1. Book Cover + Life Timeline Sketch**
+- Fetch cover
+- Text-art timeline of 5 key life moments
+
+**2. Summary Components**
+- 🌟 **Why This Person Matters**: (1 sentence legacy)
+- 🎭 **Character Arc**: (How they changed from start to end)
+- 💪 **Defining Struggle**: (What obstacle defined them)
+- 🏆 **Greatest Achievement** & 🥀 **Biggest Regret**
+- 🔍 **Unknown Fact**: (something most don't know)
+
+**3. Life Phases** (3-4 stages)
+- Phase 1: Origins & Formative years
+- Phase 2: The struggle/climbing
+- Phase 3: Breakthrough/Peak
+- Phase 4: Later years & reflection
+
+**4. Key Relationships** (Who shaped them)
+
+**5. Full Summary** (350 words - narrative flow)
+
+**6. Best Anecdote** (short, powerful story from their life)
+
+**7. Lessons for Your Life**: (3 practical takeaways)
+
+**PDF Format**:
+- Font: Baskerville (timeless)
+- Color: #8e44ad (royal purple)
+- Decorative timeline border
+
+
+## FINANCE BOOK SUMMARY PROMPT
+
+### Output Structure:
+
+**1. Book Cover + Money Visual**
+- Fetch cover
+- Text-art of compound growth / shield / graph
+
+**2. Summary Components**
+- 💵 **Core Money Principle**: (One sentence)
+- 📈 **Risk Level**: (Conservative ↔ Aggressive)
+- 🎯 **Best For**: (Beginners / Investors / Business owners / Debt payoff)
+- ⏰ **Time Horizon**: (Short-term ↔ Generational wealth)
+- 💡 **Contrarian Take**: (What they say that others don't)
+
+**3. Key Strategies** (Top 5 with examples)
+- Strategy 1: How to implement
+- Strategy 2: Expected return
+- Strategy 3: Risk management
+
+**4. Numbers That Matter** (Key statistics from book)
+
+**5. Full Summary** (350 words - practical + conceptual)
+
+**6. Best Money Quote**
+
+**7. Action Plan**: 
+- Do this today
+- Do this this week
+- Do this this month
+
+**8. Criticism**: What experts disagree with
+
+**PDF Format**:
+- Font: Arial (clean numbers)
+- Color: #27ae60 (money green)
+- Tables for financial data
+
+
+
+## SELF-HELP BOOK SUMMARY PROMPT
+
+### Output Structure:
+
+**1. Book Cover + Transformation Sketch**
+- Fetch cover
+- Text-art of before/after or ladder/climb
+
+**2. Summary Components**
+- 🎯 **Promise**: What will change after reading?
+- 🔬 **Methodology**: (Science-based / Anecdotal / Spiritual / System)
+- ⏱️ **Effort Required**: (Passive read ↔ Daily practice)
+- 🧪 **Uniqueness**: What's different from other self-help?
+
+**3. Core Framework** (The "system" explained visually with text)
+
+**4. Key Habits/Exercises** (Top 5)
+- Exercise 1: Instructions
+- Exercise 2: Time required
+- Exercise 3: Expected outcome
+
+**5. Mental Models Introduced** (2-3 new ways to think)
+
+**6. Full Summary** (350 words - actionable + inspiring)
+
+**7. Best Affirmation/Quote**
+
+**8. 30-Day Challenge** (Day-by-day simple actions)
+
+**9. Skeptic's Note**: What might not work for everyone
+
+**PDF Format**:
+- Font: Open Sans (friendly)
+- Color: #f39c12 (warm orange)
+- Checklist boxes throughout
+
+
+
+## TECH BOOK SUMMARY PROMPT
+
+### Output Structure:
+
+**1. Book Cover + Code/System Sketch**
+- Fetch cover
+- Text-art of code brackets / server rack / neural network
+
+**2. Summary Components**
+- 🛠️ **Tech Stack Covered**: (Languages, frameworks, tools)
+- 📊 **Difficulty Level**: (Beginner ↔ Intermediate ↔ Advanced)
+- 🎯 **Best For**: (Frontend/Backend/DevOps/Data/ML/Architecture)
+- ⏰ **Time to Complete**: (Hours/Days/Weeks)
+- 🔄 **Still Relevant?**: (Timeless / Dated / Cutting edge)
+
+**3. Key Concepts Explained** (Top 5 with simplified analogies)
+- Concept 1: What, Why, How
+- Concept 2: Code example snippet
+
+**4. Hands-On Projects** (What you'll build)
+
+**5. Full Summary** (350 words - technical but clear)
+
+**6. Best Code Snippet** (Most useful piece of code)
+
+**7. Prerequisites**: What to know before reading
+
+**8. Alternative Resources**: If not this book, then what?
+
+**PDF Format**:
+- Font: Fira Code (monospace for code)
+- Color: #2980b9 (dev blue)
+- Code blocks with syntax highlighting representation
+
+
+
+## RELIGIOUS BOOK SUMMARY PROMPT
+
+### Output Structure:
+
+**1. Book Cover + Sacred Symbol Sketch**
+- Fetch cover
+- Text-art of relevant symbol (om, cross, lotus, star, etc.)
+
+**2. Summary Components**
+- 🕊️ **Tradition/Belief System**: (Which faith/philosophy)
+- 📜 **Text Type**: (Scripture / Commentary / Modern interpretation / Biography of saint)
+- 🔍 **Scholarly vs Devotional**: (Academic ↔ Devotional)
+- 💫 **Core Teaching**: (One sentence summary of message)
+
+**3. Key Teachings** (Top 5 with explanations)
+- Teaching 1: Traditional view
+- Teaching 2: Modern application
+
+**4. Sacred Passages** (2-3 most quoted verses)
+
+**5. Historical Context**: When/why written
+
+**6. Full Summary** (350 words - respectful, informative)
+
+**7. Most Powerful Verse/Quote**
+
+**8. Practical Application**: How to incorporate into daily life
+
+**9. Interfaith Perspective**: How other traditions view similar concepts
+
+**PDF Format**:
+- Font: Times New Roman (traditional)
+- Color: #d4af37 (gold/sacred)
+- Ornate border pattern
+
+
