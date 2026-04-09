@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Book Summary - Readera</title>
+    <title>Book Summarizer - AI Romance Summaries</title>
     <style>
         * {
             margin: 0;
@@ -13,124 +13,267 @@
         }
 
         body {
-            font-family: 'Inter', sans-serif;
-            background: #f5f7fa;
-            padding: 20px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 40px 20px;
         }
 
-        .summary-container {
-            max-width: 800px;
+        .container {
+            max-width: 900px;
             margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .book-card {
             background: white;
             border-radius: 20px;
             padding: 30px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
         }
 
-        .download-btn {
-            background: #8B4513;
+        .book-selector {
+            margin-bottom: 25px;
+        }
+
+        .book-selector label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        select {
+            width: 100%;
+            padding: 15px;
+            font-size: 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            background: white;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        button {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
             color: white;
             border: none;
-            padding: 12px 24px;
-            border-radius: 10px;
+            border-radius: 12px;
+            font-size: 18px;
+            font-weight: 600;
             cursor: pointer;
-            font-size: 16px;
-            margin: 20px 0;
+            transition: transform 0.2s, box-shadow 0.2s;
+            margin-bottom: 25px;
         }
 
-        .download-btn:hover {
-            background: #6b3410;
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
         }
 
-        .back-btn {
-            background: #e2e8f0;
-            padding: 12px 24px;
-            border-radius: 10px;
-            text-decoration: none;
+        .summary-container {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 25px;
+            min-height: 300px;
+            border-left: 4px solid #667eea;
+        }
+
+        .summary-title {
+            font-size: 20px;
+            font-weight: 700;
             color: #333;
-            margin-right: 10px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
 
-        body.dark-mode {
-            background: #0f172a;
+        .summary-text {
+            line-height: 1.8;
+            color: #555;
+            font-size: 16px;
         }
 
-        body.dark-mode .summary-container {
-            background: #1f2937;
-            color: #e2e8f0;
+        .loading {
+            text-align: center;
+            padding: 40px;
+        }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .error {
+            color: #dc3545;
+            text-align: center;
+            padding: 20px;
+            background: #ffe6e6;
+            border-radius: 10px;
+        }
+
+        .success {
+            color: #28a745;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            color: white;
+            opacity: 0.8;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 1.8rem;
+            }
+
+            .book-card {
+                padding: 20px;
+            }
         }
     </style>
 </head>
 
 <body>
-    <div class="summary-container" id="summaryContainer">
-        <div style="margin-bottom: 20px;">
-            <a href="javascript:history.back()" class="back-btn">← Back to Book</a>
-            <button class="download-btn" id="downloadPdfBtn">📥 Download as PDF</button>
+    <div class="container">
+        <div class="header">
+            <h1>📚 Romance Book Summarizer</h1>
+            <p>Get beautiful, spoiler-free summaries of the world's best romance novels</p>
         </div>
-        <div id="summaryContent">Loading summary...</div>
+
+        <div class="book-card">
+            <div class="book-selector">
+                <label>📖 Select a Romance Novel:</label>
+                <select id="bookSelect">
+                    <option value="fourth wing">🔥 Fourth Wing - Rebecca Yarros (Dragon Romance)</option>
+                    <option value="it ends with us">💔 It Ends With Us - Colleen Hoover</option>
+                    <option value="normal people">💕 Normal People - Sally Rooney</option>
+                    <option value="love hypothesis">🔬 The Love Hypothesis - Ali Hazelwood</option>
+                    <option value="evelyn hugo">✨ The Seven Husbands of Evelyn Hugo - Taylor Jenkins Reid</option>
+                </select>
+            </div>
+
+            <button onclick="getBookSummary()">
+                ✨ Generate Summary
+            </button>
+
+            <div class="summary-container" id="summaryContainer">
+                <div class="summary-title">
+                    <span>📖</span>
+                    <span>Your Summary Will Appear Here</span>
+                </div>
+                <div class="summary-text">
+                    Select a book from the dropdown and click "Generate Summary" to get started.
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>⚡ Powered by AI | 📝 Spoiler-Free Summaries | 💾 Download as PDF coming soon</p>
+        </div>
     </div>
 
     <script>
-        const urlParams = new URLSearchParams(window.location.search);
-        const bookId = urlParams.get('id');
-        const genre = urlParams.get('genre') || 'fiction';
+        async function getBookSummary() {
+            const select = document.getElementById('bookSelect');
+            const title = select.options[select.selectedIndex].text.split(' - ')[0];
+            const summaryContainer = document.getElementById('summaryContainer');
 
-        async function loadSummary() {
-            // Fetch book details from your existing API
-            const res = await fetch('/books.json');
-            const books = await res.json();
-            const book = books.find(b => b.id == bookId);
+            // Show loading state
+            summaryContainer.innerHTML = `
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <p>🤖 AI is generating your summary...</p>
+                    <small style="color: #999;">This may take a few seconds</small>
+                </div>
+            `;
 
-            if (!book) {
-                document.getElementById('summaryContent').innerHTML = '<p>Book not found</p>';
-                return;
+            try {
+                const response = await fetch('http://localhost:3000/api/summary', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        title: title,
+                        author: ""
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+
+                if (data.success) {
+                    summaryContainer.innerHTML = `
+                        <div class="summary-title">
+                            <span>📖</span>
+                            <span>Summary: ${title}</span>
+                        </div>
+                        <div class="summary-text">
+                            ${data.summary.replace(/\n/g, '<br><br>')}
+                        </div>
+                        <hr style="margin: 20px 0;">
+                        <small style="color: #999;">✨ AI-generated spoiler-free summary | Enjoy the book!</small>
+                    `;
+                } else {
+                    throw new Error('Failed to get summary');
+                }
+
+            } catch (error) {
+                console.error('Error:', error);
+                summaryContainer.innerHTML = `
+                    <div class="error">
+                        <strong>❌ Connection Error!</strong><br><br>
+                        Make sure the backend server is running:<br>
+                        1. Open terminal in: C:\\Users\\admin\\Desktop\\BookSummarizer\\backend<br>
+                        2. Run: <code style="background:#333;color:#fff;padding:2px 6px;border-radius:4px;">node server.js</code><br>
+                        3. Then refresh this page and try again.
+                    </div>
+                `;
             }
-
-            // Generate summary
-            const summaryRes = await fetch('/api/generate-summary', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    bookId: book.id,
-                    genre: genre,
-                    title: book.title,
-                    author: book.author,
-                    isbn: book.isbn,
-                    pages: book.pages
-                })
-            });
-
-            const data = await summaryRes.json();
-            document.getElementById('summaryContent').innerHTML = data.summary;
-
-            // Store summary for PDF download
-            window.currentSummary = data.summary;
-            window.currentBook = book;
         }
-
-        document.getElementById('downloadPdfBtn')?.addEventListener('click', async () => {
-            const pdfRes = await fetch('/api/generate-pdf', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    bookId: window.currentBook.id,
-                    genre: genre,
-                    title: window.currentBook.title,
-                    author: window.currentBook.author,
-                    isbn: window.currentBook.isbn,
-                    pages: window.currentBook.pages,
-                    summary: window.currentSummary
-                })
-            });
-
-            const data = await pdfRes.json();
-            if (data.success) {
-                window.open(data.pdfUrl, '_blank');
-            }
-        });
-
-        loadSummary();
     </script>
 </body>
 

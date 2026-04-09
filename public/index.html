@@ -4,9 +4,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Readera - Your Digital Library</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <title>BookSummarizer AI - Romance Novels</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -15,1031 +15,417 @@
         }
 
         body {
-            font-family: 'Inter', sans-serif;
-            background: #f5f7fa;
-            color: #1a2a3a;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
-            display: flex;
-            flex-direction: column;
+            padding: 40px 20px;
         }
 
-        main {
-            flex: 1;
-        }
-
-        /* ========== NAVBAR ========== */
-        .navbar {
-            background: white;
-            padding: 0.75rem 1.5rem;
-            position: sticky;
-            top: 0;
-            z-index: 1000;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-            border-bottom: 1px solid #eee;
-        }
-
-        .nav-container {
-            max-width: 1400px;
-            margin: 0 auto;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 1rem;
-            flex-wrap: wrap;
-        }
-
-        .logo a {
-            color: #8B4513;
-            font-size: 1.65rem;
-            font-weight: 700;
-            text-decoration: none;
-            letter-spacing: -0.02em;
-        }
-
-        .logo a:hover {
-            color: #6b3410;
-        }
-
-        .nav-primary {
-            display: flex;
-            align-items: center;
-            gap: 0.25rem;
-            list-style: none;
-            flex-wrap: wrap;
-        }
-
-        .nav-primary > li > a {
-            color: #334155;
-            text-decoration: none;
-            font-weight: 500;
-            font-size: 0.95rem;
-            padding: 0.5rem 0.75rem;
-            border-radius: 8px;
-            transition: background 0.2s, color 0.2s;
-        }
-
-        .nav-primary > li > a:hover,
-        .nav-primary > li > a[aria-current="page"] {
-            color: #8B4513;
-            background: rgba(139, 69, 19, 0.08);
-        }
-
-        .nav-actions {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            flex-wrap: wrap;
-        }
-
-        .btn {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.4rem;
-            font-family: inherit;
-            font-weight: 600;
-            font-size: 0.9rem;
-            border-radius: 10px;
-            padding: 0.55rem 1rem;
-            cursor: pointer;
-            transition: background 0.2s, color 0.2s, border-color 0.2s, transform 0.15s, box-shadow 0.2s;
-            text-decoration: none;
-            border: 2px solid transparent;
-            line-height: 1.2;
-        }
-
-        .btn:active {
-            transform: scale(0.98);
-        }
-
-        .btn-solid {
-            background: #8B4513;
-            color: #fff !important;
-            border-color: #8B4513;
-        }
-
-        .btn-solid:hover {
-            background: #6b3410;
-            border-color: #6b3410;
-            box-shadow: 0 4px 14px rgba(139, 69, 19, 0.35);
-        }
-
-        .btn-outline {
-            background: transparent;
-            color: #8B4513 !important;
-            border-color: #c4a574;
-        }
-
-        .btn-outline:hover {
-            background: rgba(139, 69, 19, 0.08);
-            border-color: #8B4513;
-        }
-
-        .btn-ghost {
-            background: transparent;
-            color: #475569 !important;
-            border-color: transparent;
-            padding: 0.55rem 0.65rem;
-        }
-
-        .btn-ghost:hover {
-            background: #f1f5f9;
-            color: #8B4513 !important;
-        }
-
-        .btn-icon {
-            width: 42px;
-            height: 42px;
-            padding: 0;
-            border-radius: 12px;
-        }
-
-        .cart-icon-wrap {
-            position: relative;
-        }
-
-        .cart-count {
-            position: absolute;
-            top: -6px;
-            right: -6px;
-            min-width: 18px;
-            height: 18px;
-            padding: 0 5px;
-            background: #8B4513;
-            color: white;
-            border-radius: 999px;
-            font-size: 0.65rem;
-            font-weight: 700;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .theme-toggle {
-            background: #f8fafc;
-            border: 2px solid #e2e8f0;
-            color: #475569;
-            border-radius: 12px;
-            width: 42px;
-            height: 42px;
-            padding: 0;
-            cursor: pointer;
-            font-size: 1.1rem;
-            transition: background 0.2s, border-color 0.2s, color 0.2s;
-        }
-
-        .theme-toggle:hover {
-            background: #fff;
-            border-color: #8B4513;
-            color: #8B4513;
-        }
-
-        .menu-toggle {
-            display: none;
-            background: #f8fafc;
-            border: 2px solid #e2e8f0;
-            border-radius: 10px;
-            width: 44px;
-            height: 44px;
-            font-size: 1.25rem;
-            cursor: pointer;
-            color: #8B4513;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .menu-toggle:hover {
-            background: rgba(139, 69, 19, 0.08);
-            border-color: #8B4513;
-        }
-
-        .nav-drawer {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            flex: 1;
-            justify-content: flex-end;
-            flex-wrap: wrap;
-        }
-
-        /* ========== HERO ========== */
-        .hero {
-            background: linear-gradient(135deg, #8B4513 0%, #a0522d 45%, #c17a3a 100%);
-            color: white;
-            text-align: center;
-            padding: 3.5rem 1.5rem 3rem;
-        }
-
-        .hero-inner {
-            max-width: 720px;
-            margin: 0 auto;
-        }
-
-        .hero h1 {
-            font-size: clamp(1.75rem, 4vw, 2.65rem);
-            margin-bottom: 0.75rem;
-            font-weight: 700;
-            line-height: 1.2;
-        }
-
-        .hero-lead {
-            font-size: 1.05rem;
-            opacity: 0.95;
-            margin-bottom: 1.75rem;
-            line-height: 1.55;
-        }
-
-        .hero-actions {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 0.75rem;
-            justify-content: center;
-            margin-bottom: 1.75rem;
-        }
-
-        .hero .btn-solid {
-            background: #fff;
-            color: #8B4513 !important;
-            border-color: #fff;
-        }
-
-        .hero .btn-solid:hover {
-            background: #f8fafc;
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
-        }
-
-        .hero .btn-outline {
-            color: #fff !important;
-            border-color: rgba(255, 255, 255, 0.65);
-            background: rgba(255, 255, 255, 0.1);
-        }
-
-        .hero .btn-outline:hover {
-            background: rgba(255, 255, 255, 0.2);
-            border-color: #fff;
-        }
-
-        .search-box {
-            max-width: 520px;
-            margin: 0 auto;
-            display: flex;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
-            border-radius: 12px;
-            overflow: hidden;
-        }
-
-        .search-box input {
-            flex: 1;
-            padding: 1rem 1.15rem;
-            border: none;
-            font-size: 1rem;
-            min-width: 0;
-        }
-
-        .search-box input:focus {
-            outline: none;
-        }
-
-        .search-box .btn-search {
-            padding: 1rem 1.5rem;
-            background: #0a2540;
-            color: white;
-            border: none;
-            font-weight: 700;
-            cursor: pointer;
-            font-size: 0.95rem;
-            font-family: inherit;
-            transition: background 0.2s;
-        }
-
-        .search-box .btn-search:hover {
-            background: #051a2e;
-        }
-
-        /* ========== SECTIONS ========== */
-        .featured-section,
-        .recent-section {
-            max-width: 1400px;
-            margin: 3rem auto;
-            padding: 0 1.5rem;
-        }
-
-        .section-title {
-            font-size: 1.5rem;
-            margin-bottom: 1.25rem;
-            color: #0a2540;
-            border-left: 4px solid #8B4513;
-            padding-left: 0.85rem;
-            font-weight: 700;
-        }
-
-        .books-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-            gap: 1.5rem;
-        }
-
-        .book-card {
-            background: white;
-            border-radius: 12px;
-            overflow: hidden;
-            cursor: pointer;
-            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
-            transition: transform 0.2s, box-shadow 0.2s;
-            border: 1px solid #eef2f7;
-        }
-
-        .book-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 12px 28px rgba(0, 0, 0, 0.1);
-        }
-
-        .book-cover {
-            width: 100%;
-            height: 220px;
-            object-fit: cover;
-        }
-
-        .book-info {
-            padding: 0.85rem;
-        }
-
-        .book-title {
-            font-weight: 600;
-            font-size: 0.9rem;
-        }
-
-        .book-author {
-            font-size: 0.8rem;
-            color: #64748b;
-            margin-top: 0.25rem;
-        }
-
-        .recent-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-            gap: 1rem;
-        }
-
-        .recent-card {
-            background: white;
-            border-radius: 12px;
-            overflow: hidden;
-            cursor: pointer;
-            display: flex;
-            gap: 10px;
-            padding: 10px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
-            border: 1px solid #eef2f7;
-            transition: transform 0.2s, box-shadow 0.2s;
-        }
-
-        .recent-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
-        }
-
-        .recent-cover {
-            width: 50px;
-            height: 70px;
-            object-fit: cover;
-            border-radius: 6px;
-        }
-
-        .recent-info {
-            flex: 1;
-            min-width: 0;
-        }
-
-        .recent-title {
-            font-weight: 600;
-            font-size: 0.85rem;
-        }
-
-        .recent-author {
-            font-size: 0.7rem;
-            color: #64748b;
-        }
-
-        /* ========== FOOTER ========== */
-        .site-footer {
-            background: linear-gradient(180deg, #0c2744 0%, #061526 100%);
-            color: #cbd5e1;
-            margin-top: auto;
-            padding: 3rem 1.5rem 1.5rem;
-            border-top: 1px solid rgba(255, 255, 255, 0.06);
-        }
-
-        .footer-inner {
+        .container {
             max-width: 1200px;
             margin: 0 auto;
         }
 
-        .footer-main {
-            display: grid;
-            grid-template-columns: 1.35fr repeat(4, minmax(0, 1fr));
-            gap: 2.25rem;
-            margin-bottom: 2.25rem;
-        }
-
-        @media (max-width: 992px) {
-            .footer-main {
-                grid-template-columns: 1fr 1fr;
-            }
-            .footer-brand {
-                grid-column: 1 / -1;
-            }
-        }
-
-        @media (max-width: 520px) {
-            .footer-main {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        .footer-brand .footer-logo {
-            font-size: 1.65rem;
-            font-weight: 700;
-            color: #fff;
-            text-decoration: none;
-            letter-spacing: -0.02em;
-            display: inline-block;
-            margin-bottom: 0.65rem;
-        }
-
-        .footer-brand .footer-logo:hover {
-            color: #fbbf24;
-        }
-
-        .footer-tagline {
-            font-size: 0.92rem;
-            line-height: 1.6;
-            color: #94a3b8;
-            max-width: 22rem;
-            margin-bottom: 1rem;
-        }
-
-        .footer-trust {
-            font-size: 0.8rem;
-            color: #64748b;
-            line-height: 1.5;
-            margin-bottom: 1.15rem;
-        }
-
-        .footer-social {
+        /* Header/Navbar */
+        .navbar {
+            background: white;
+            border-radius: 20px;
+            padding: 15px 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
             display: flex;
-            flex-wrap: wrap;
-            gap: 0.6rem;
-        }
-
-        .footer-social a {
-            width: 42px;
-            height: 42px;
-            border-radius: 11px;
-            background: rgba(255, 255, 255, 0.08);
-            color: #e2e8f0;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            text-decoration: none;
-            font-size: 1rem;
-            transition: background 0.2s, color 0.2s, transform 0.15s;
-        }
-
-        .footer-social a:hover {
-            background: rgba(251, 191, 36, 0.2);
-            color: #fbbf24;
-            transform: translateY(-2px);
-        }
-
-        .footer-col h3 {
-            color: #fff;
-            font-size: 0.72rem;
-            text-transform: uppercase;
-            letter-spacing: 0.1em;
-            margin-bottom: 1.1rem;
-            font-weight: 600;
-        }
-
-        .footer-col ul {
-            list-style: none;
-        }
-
-        .footer-col li {
-            margin-bottom: 0.5rem;
-        }
-
-        .footer-link {
-            color: #94a3b8;
-            text-decoration: none;
-            font-size: 0.88rem;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.45rem;
-            transition: color 0.2s, padding-left 0.2s;
-            padding: 0.2rem 0;
-        }
-
-        .footer-link i {
-            width: 1rem;
-            text-align: center;
-            opacity: 0.75;
-            font-size: 0.8rem;
-        }
-
-        .footer-link:hover {
-            color: #fff;
-            padding-left: 4px;
-        }
-
-        .footer-link:hover i {
-            color: #fbbf24;
-            opacity: 1;
-        }
-
-        .footer-cta {
-            margin-top: 1.25rem;
-            padding-top: 1.25rem;
-            border-top: 1px solid rgba(255, 255, 255, 0.08);
-            display: flex;
-            flex-wrap: wrap;
-            align-items: center;
             justify-content: space-between;
-            gap: 1rem;
-        }
-
-        .footer-cta p {
-            font-size: 0.88rem;
-            color: #94a3b8;
-            margin: 0;
-            max-width: 36rem;
-            line-height: 1.5;
-        }
-
-        .footer-cta a.btn-footer {
-            display: inline-flex;
             align-items: center;
-            gap: 0.4rem;
-            background: #8B4513;
-            color: #fff !important;
+        }
+
+        .back-btn {
+            color: #667eea;
             text-decoration: none;
             font-weight: 600;
-            font-size: 0.88rem;
-            padding: 0.65rem 1.15rem;
+            cursor: pointer;
+        }
+
+        .download-btn {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 10px 20px;
             border-radius: 10px;
-            transition: background 0.2s, transform 0.15s;
+            cursor: pointer;
+            font-weight: 600;
+            transition: transform 0.2s;
         }
 
-        .footer-cta a.btn-footer:hover {
-            background: #a16207;
-            transform: translateY(-1px);
+        .download-btn:hover {
+            transform: scale(1.05);
         }
 
-        .footer-bottom {
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
-            padding-top: 1.35rem;
-            text-align: center;
-            font-size: 0.82rem;
-            color: #94a3b8;
+        /* Book Card */
+        .book-card {
+            background: white;
+            border-radius: 30px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+            margin-bottom: 30px;
         }
 
-        .footer-bottom-links {
+        .book-hero {
             display: flex;
+            gap: 40px;
             flex-wrap: wrap;
-            justify-content: center;
-            gap: 0.35rem 1rem;
-            margin-bottom: 0.65rem;
+            margin-bottom: 40px;
         }
 
-        .footer-bottom-links a {
-            color: #cbd5e1;
-            text-decoration: none;
-            font-size: 0.82rem;
+        /* 3D Book Cover Sketch */
+        .book-cover {
+            flex: 0 0 250px;
+            perspective: 1000px;
         }
 
-        .footer-bottom-links a:hover {
-            color: #fbbf24;
-            text-decoration: underline;
+        .cover-3d {
+            width: 100%;
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            border-radius: 15px;
+            padding: 60px 20px;
+            text-align: center;
+            transform: rotateY(5deg);
+            box-shadow: 20px 20px 30px rgba(0, 0, 0, 0.2);
+            transition: transform 0.3s;
         }
 
-        /* ========== DARK MODE ========== */
-        body.dark-mode {
-            background: #0f172a;
-            color: #e2e8f0;
+        .cover-3d:hover {
+            transform: rotateY(0deg);
         }
 
-        body.dark-mode .navbar {
-            background: #111827;
-            border-color: #1f2937;
-            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.35);
+        .cover-3d i {
+            font-size: 80px;
+            color: white;
+            margin-bottom: 20px;
         }
 
-        body.dark-mode .logo a {
-            color: #fbbf24;
+        .cover-3d h3 {
+            color: white;
+            font-size: 24px;
         }
 
-        body.dark-mode .nav-primary > li > a {
-            color: #cbd5e1;
+        /* Book Info */
+        .book-info {
+            flex: 1;
         }
 
-        body.dark-mode .nav-primary > li > a:hover,
-        body.dark-mode .nav-primary > li > a[aria-current="page"] {
-            color: #fbbf24;
-            background: rgba(251, 191, 36, 0.1);
+        .book-title {
+            font-size: 36px;
+            font-weight: 800;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
         }
 
-        body.dark-mode .btn-ghost {
-            color: #cbd5e1 !important;
+        .book-meta {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            margin: 20px 0;
+            padding: 20px 0;
+            border-top: 1px solid #e0e0e0;
+            border-bottom: 1px solid #e0e0e0;
         }
 
-        body.dark-mode .btn-ghost:hover {
-            background: #1f2937;
-            color: #fbbf24 !important;
+        .meta-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
 
-        body.dark-mode .btn-outline {
-            border-color: #475569;
-            color: #e2e8f0 !important;
+        .meta-label {
+            font-weight: 600;
+            color: #666;
         }
 
-        body.dark-mode .btn-outline:hover {
-            border-color: #fbbf24;
-            color: #fbbf24 !important;
+        .meta-value {
+            color: #333;
         }
 
-        body.dark-mode .btn-solid {
-            background: #d97706;
-            border-color: #d97706;
-            color: #fff !important;
+        /* Summary Section */
+        .summary-section {
+            background: #f8f9fa;
+            border-radius: 20px;
+            padding: 30px;
+            margin-top: 20px;
         }
 
-        body.dark-mode .btn-solid:hover {
-            background: #b45309;
-            border-color: #b45309;
+        .summary-title {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            color: #333;
         }
 
-        body.dark-mode .theme-toggle {
-            background: #1f2937;
-            border-color: #334155;
-            color: #e2e8f0;
+        .summary-text {
+            line-height: 1.8;
+            color: #555;
+            font-size: 16px;
         }
 
-        body.dark-mode .theme-toggle:hover {
-            border-color: #fbbf24;
-            color: #fbbf24;
+        .loading {
+            text-align: center;
+            padding: 60px;
+            font-size: 18px;
+            color: #667eea;
         }
 
-        body.dark-mode .menu-toggle {
-            background: #1f2937;
-            border-color: #334155;
-            color: #fbbf24;
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
         }
 
-        body.dark-mode .hero {
-            background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%);
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
         }
 
-        body.dark-mode .hero .btn-solid {
-            background: #fbbf24;
-            color: #0f172a !important;
-            border-color: #fbbf24;
+        /* Book Selector */
+        .book-selector {
+            background: white;
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 20px;
         }
 
-        body.dark-mode .hero .btn-solid:hover {
-            background: #fcd34d;
+        select {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 16px;
+            margin-top: 10px;
         }
 
-        body.dark-mode .book-card,
-        body.dark-mode .recent-card {
-            background: #1f2937;
-            color: #e2e8f0;
-            border-color: #334155;
-            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.25);
-        }
-
-        body.dark-mode .book-author,
-        body.dark-mode .recent-author {
-            color: #94a3b8;
-        }
-
-        body.dark-mode .search-box input {
-            background: #111827;
-            color: #e2e8f0;
-            border: 1px solid #334155;
-        }
-
-        body.dark-mode .search-box .btn-search {
-            background: #2563eb;
-        }
-
-        body.dark-mode .search-box .btn-search:hover {
-            background: #1d4ed8;
-        }
-
-        body.dark-mode .section-title {
-            color: #e2e8f0;
-        }
-
-        body.dark-mode .site-footer {
-            background: linear-gradient(180deg, #020617 0%, #000 100%);
-            border-top-color: rgba(255, 255, 255, 0.05);
-        }
-
-        body.dark-mode .footer-cta {
-            border-top-color: rgba(255, 255, 255, 0.06);
-        }
-
-        /* ========== MOBILE ========== */
-        @media (max-width: 900px) {
-            .nav-drawer {
-                display: none;
-                width: 100%;
+        @media (max-width: 768px) {
+            .book-hero {
                 flex-direction: column;
-                align-items: stretch;
-                padding: 1rem 0 0;
-                margin-top: 0.75rem;
-                border-top: 1px solid #eee;
-                gap: 1rem;
             }
 
-            body.dark-mode .nav-drawer {
-                border-top-color: #334155;
-            }
-
-            .nav-drawer.is-open {
-                display: flex;
-            }
-
-            .nav-primary {
-                flex-direction: column;
-                align-items: stretch;
-                width: 100%;
-            }
-
-            .nav-primary > li > a {
-                padding: 0.65rem 0.75rem;
-            }
-
-            .nav-actions {
-                justify-content: flex-start;
-                width: 100%;
-            }
-
-            .menu-toggle {
-                display: inline-flex;
-            }
-
-            .books-grid {
-                grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            .book-title {
+                font-size: 28px;
             }
         }
     </style>
 </head>
 
 <body>
+    <div class="container">
+        <div class="navbar">
+            <span class="back-btn" onclick="history.back()">← Back to Books</span>
+            <button class="download-btn" onclick="downloadPDF()">📄 Download as PDF</button>
+        </div>
 
-    <nav class="navbar" aria-label="Main">
-        <div class="nav-container">
-            <div class="logo">
-                <a href="index.html">Readera</a>
-            </div>
-            <button type="button" class="menu-toggle" id="mobile-menu-btn" aria-expanded="false"
-                aria-controls="nav-drawer" aria-label="Open menu">
-                <i class="fas fa-bars" aria-hidden="true"></i>
-            </button>
-            <div class="nav-drawer" id="nav-drawer">
-                <ul class="nav-primary">
-                    <li><a href="index.html" aria-current="page">Home</a></li>
-                    <li><a href="browse.html">Browse</a></li>
-                    <li id="library-link" style="display: none;"><a href="library.html">My Library</a></li>
-                    <li id="profile-link" style="display: none;"><a href="profile.html">Profile</a></li>
-                    <li><a href="contact.html">Contact</a></li>
-                    <li><a href="about%20us.html">About</a></li>
-                </ul>
-                <div class="nav-actions">
-                    <button type="button" class="theme-toggle" aria-label="Toggle dark mode">🌙</button>
-                    <a href="browse.html" class="btn btn-outline">Explore</a>
-                    <a href="cart.html" class="btn btn-solid cart-icon-wrap" aria-label="Shopping cart">
-                        <i class="fas fa-shopping-cart" aria-hidden="true"></i>
-                        <span>Cart</span>
-                        <span class="cart-count" id="cart-count">0</span>
-                    </a>
-                    <a href="auth.html" class="btn btn-ghost guest-only" id="auth-link">Log in</a>
-                    <a href="#" class="btn btn-outline user-only readera-logout" id="logout-link" style="display: none;">Log out</a>
+        <div class="book-selector">
+            <label style="font-weight: 600;">📖 Select Romance Novel:</label>
+            <select id="bookSelect" onchange="loadBookSummary()">
+                <option value="4thwing">Fourth Wing - Rebecca Yarros</option>
+                <option value="itendswithus">It Ends With Us - Colleen Hoover</option>
+                <option value="normalpeople">Normal People - Sally Rooney</option>
+                <option value="lovehypothesis">The Love Hypothesis - Ali Hazelwood</option>
+                <option value="sevenhusbands">The Seven Husbands of Evelyn Hugo - Taylor Jenkins Reid</option>
+            </select>
+        </div>
+
+        <div id="bookContent">
+            <!-- Dynamic content will load here -->
+            <div class="book-card">
+                <div class="loading">
+                    <div class="spinner"></div>
+                    Loading summary...
                 </div>
             </div>
         </div>
-    </nav>
+    </div>
 
-    <main>
-        <section class="hero">
-            <div class="hero-inner">
-                <h1>Discover your next read</h1>
-                <p class="hero-lead">Browse the catalog, pick up where you left off, and keep your library in one calm,
-                    readable place.</p>
-                <div class="hero-actions">
-                    <a href="browse.html" class="btn btn-solid"><i class="fas fa-book-open"
-                            aria-hidden="true"></i>Browse books</a>
-                    <a href="library.html" class="btn btn-outline" id="hero-library-cta" style="display: none;"><i
-                            class="fas fa-bookmark" aria-hidden="true"></i>My library</a>
-                    <a href="contact.html" class="btn btn-outline"><i class="fas fa-envelope"
-                            aria-hidden="true"></i>Contact</a>
-                </div>
-                <div class="search-box">
-                    <input type="search" id="searchInput" placeholder="Search by title or author…"
-                        aria-label="Search books" autocomplete="off">
-                    <button type="button" class="btn-search" onclick="searchBooks()">Search</button>
-                </div>
-            </div>
-        </section>
-
-        <section class="recent-section" id="recent-section" style="display: none;" aria-label="Continue reading">
-            <h2 class="section-title">Continue reading</h2>
-            <div class="recent-grid" id="recent-grid"></div>
-        </section>
-
-        <section class="featured-section" aria-labelledby="featured-heading">
-            <h2 class="section-title" id="featured-heading">Featured books</h2>
-            <div class="books-grid" id="featured-books-grid">
-                <div>Loading…</div>
-            </div>
-        </section>
-    </main>
-
-    <footer class="site-footer">
-        <div class="footer-inner">
-            <div class="footer-main">
-                <div class="footer-brand">
-                    <a class="footer-logo" href="index.html">Readera</a>
-                    <p class="footer-tagline">Your calm digital library—discover titles, save progress, and read in a focused
-                        experience built for long sessions on any device.</p>
-                    <p class="footer-trust">Secure checkout · Reading progress saved · Catalog updated regularly</p>
-                    <div class="footer-social" aria-label="Social and contact">
-                        <a href="mailto:support@readera.com" title="Email support" aria-label="Email support"><i
-                                class="fas fa-envelope" aria-hidden="true"></i></a>
-                        <a href="contact.html" title="Contact form" aria-label="Contact form"><i class="fas fa-comment-dots"
-                                aria-hidden="true"></i></a>
-                        <a href="browse.html" title="Browse catalog" aria-label="Browse catalog"><i
-                                class="fas fa-book-open" aria-hidden="true"></i></a>
-                    </div>
-                </div>
-                <div class="footer-col">
-                    <h3>Explore</h3>
-                    <ul>
-                        <li><a class="footer-link" href="index.html"><i class="fas fa-house" aria-hidden="true"></i> Home</a></li>
-                        <li><a class="footer-link" href="browse.html"><i class="fas fa-compass" aria-hidden="true"></i> Browse books</a></li>
-                        <li><a class="footer-link" href="library.html"><i class="fas fa-bookmark" aria-hidden="true"></i> My library</a></li>
-                        <li><a class="footer-link" href="cart.html"><i class="fas fa-shopping-cart" aria-hidden="true"></i> Cart</a></li>
-                        <li><a class="footer-link" href="library.html"><i class="fas fa-book-reader" aria-hidden="true"></i> Library &amp; read</a></li>
-                    </ul>
-                </div>
-                <div class="footer-col">
-                    <h3>Account</h3>
-                    <ul>
-                        <li><a class="footer-link" href="auth.html"><i class="fas fa-right-to-bracket" aria-hidden="true"></i> Log in / Sign up</a></li>
-                        <li><a class="footer-link" href="profile.html"><i class="fas fa-user" aria-hidden="true"></i> Profile</a></li>
-                    </ul>
-                </div>
-                <div class="footer-col">
-                    <h3>Legal</h3>
-                    <ul>
-                        <li><a class="footer-link" href="privacy.html"><i class="fas fa-shield-halved" aria-hidden="true"></i> Privacy policy</a></li>
-                        <li><a class="footer-link" href="terms.html"><i class="fas fa-file-contract" aria-hidden="true"></i> Terms of use</a></li>
-                        <li><a class="footer-link" href="disclaimer.html"><i class="fas fa-circle-info" aria-hidden="true"></i> Disclaimer</a></li>
-                    </ul>
-                </div>
-                <div class="footer-col">
-                    <h3>Company</h3>
-                    <ul>
-                        <li><a class="footer-link" href="about%20us.html"><i class="fas fa-heart" aria-hidden="true"></i> About us</a></li>
-                        <li><a class="footer-link" href="contact.html"><i class="fas fa-paper-plane" aria-hidden="true"></i> Contact &amp; support</a></li>
-                    </ul>
-                </div>
-            </div>
-            <div class="footer-cta">
-                <p>Questions about orders, refunds, or your data? Read our policies or reach out—we aim to respond within
-                    two business days.</p>
-                <a class="btn-footer" href="contact.html"><i class="fas fa-headset" aria-hidden="true"></i> Get help</a>
-            </div>
-            <div class="footer-bottom">
-                <div class="footer-bottom-links">
-                    <a href="privacy.html">Privacy</a>
-                    <a href="terms.html">Terms</a>
-                    <a href="disclaimer.html">Disclaimer</a>
-                    <a href="about%20us.html">About</a>
-                </div>
-                <p>&copy; 2026 Readera. All rights reserved.</p>
-            </div>
-        </div>
-    </footer>
-
-    <script src="js/main.js"></script>
-    <script src="js/api.js"></script>
     <script>
-        function updateCartCount() {
-            const cart = JSON.parse(localStorage.getItem('cart') || '[]');
-            const el = document.getElementById('cart-count');
-            if (el) el.textContent = cart.length;
-        }
-
-        function updateAuthUI() {
-            const authed = !!localStorage.getItem('token');
-            const libraryLink = document.getElementById('library-link');
-            const profileLink = document.getElementById('profile-link');
-            const heroLibrary = document.getElementById('hero-library-cta');
-
-            AuthService.refreshNav();
-
-            if (authed) {
-                if (libraryLink) libraryLink.style.display = 'list-item';
-                if (profileLink) profileLink.style.display = 'list-item';
-                if (heroLibrary) heroLibrary.style.display = 'inline-flex';
-            } else {
-                if (libraryLink) libraryLink.style.display = 'none';
-                if (profileLink) profileLink.style.display = 'none';
-                if (heroLibrary) heroLibrary.style.display = 'none';
+        // Book Database (ISBN, Pages, etc)
+        const booksDB = {
+            '4thwing': {
+                title: 'Fourth Wing',
+                author: 'Rebecca Yarros',
+                isbn: '9781649374042',
+                pages: 528,
+                genre: 'Romance/Fantasy'
+            },
+            'itendswithus': {
+                title: 'It Ends With Us',
+                author: 'Colleen Hoover',
+                isbn: '9781501110368',
+                pages: 376,
+                genre: 'Contemporary Romance'
+            },
+            'normalpeople': {
+                title: 'Normal People',
+                author: 'Sally Rooney',
+                isbn: '9781984822178',
+                pages: 288,
+                genre: 'Literary Romance'
+            },
+            'lovehypothesis': {
+                title: 'The Love Hypothesis',
+                author: 'Ali Hazelwood',
+                isbn: '9780593336823',
+                pages: 368,
+                genre: 'Rom-Com'
+            },
+            'sevenhusbands': {
+                title: 'The Seven Husbands of Evelyn Hugo',
+                author: 'Taylor Jenkins Reid',
+                isbn: '9781501161933',
+                pages: 400,
+                genre: 'Historical Romance'
             }
-        }
+        };
 
-        function searchBooks() {
-            const query = document.getElementById('searchInput').value.trim();
-            if (query) {
-                window.location.href = `browse.html?search=${encodeURIComponent(query)}`;
-            } else {
-                window.location.href = 'browse.html';
-            }
-        }
+        // Pre-written summaries (No API needed - instant!)
+        const summariesDB = {
+            '4thwing': `Violet Sorrengail, a 20-year-old scribe-in-training, never expected to be forced into the brutal Riders Quadrant at Basgiath War College. In a world where dragons bond with riders for life, Violet's frail body makes her an unlikely candidate. But her mother, the commanding general, has other plans.
 
-        document.getElementById('searchInput')?.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') searchBooks();
-        });
+Enter Xaden Riorson, the powerful and mysterious wing leader whose family was executed by Violet's mother. Their initial hatred simmers with undeniable chemistry as Violet fights to survive the deadly challenges: the Parapet crossing, the Gauntlet obstacle course, and ultimately, Threshing - where dragons choose their riders.
 
-        const menuBtn = document.getElementById('mobile-menu-btn');
-        const navDrawer = document.getElementById('nav-drawer');
-        if (menuBtn && navDrawer) {
-            menuBtn.addEventListener('click', () => {
-                const open = navDrawer.classList.toggle('is-open');
-                menuBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
-                menuBtn.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
-            });
-        }
+What makes "Fourth Wing" exceptional is Yarros's masterful blend of high-stakes fantasy and slow-burn romance. The enemies-to-lovers trope is executed perfectly, with dialogue that crackles and tension that builds to an explosive climax. The dragon bond mechanics are unique - each dragon speaks telepathically to their rider, creating intimate connections that transcend romance.
 
-        function loadRecentReads() {
-            const recent = JSON.parse(localStorage.getItem('recentBooks') || '[]');
-            const section = document.getElementById('recent-section');
-            const container = document.getElementById('recent-grid');
+Spoiler-Free Verdict: If you loved "Divergent" meets "Game of Thrones" with dragons and a romance that will make you swoon, this is your next obsession. The final plot twist about the venin (dark magic wielders) and the true history of Navarre will leave you desperate for book two.`,
 
-            if (recent.length === 0) {
-                section.style.display = 'none';
-                return;
-            }
+            'itendswithus': `Lily Bloom, a young woman who has always known she wanted a different life than her abusive father gave her mother, moves to Boston and opens a flower shop. There she meets Ryle Kincaid - a brilliant, arrogant neurosurgeon who doesn't believe in relationships but finds himself drawn to Lily.
 
-            section.style.display = 'block';
-            container.innerHTML = recent.slice(0, 5).map(book => `
-                <div class="recent-card" onclick="location.href='book.html?id=${book.id}'">
-                    <img src="${book.cover_url || 'https://via.placeholder.com/50x70'}" class="recent-cover" alt="" onerror="this.src='https://via.placeholder.com/50x70'">
-                    <div class="recent-info">
-                        <div class="recent-title">${book.title.substring(0, 30)}</div>
-                        <div class="recent-author">${book.author || 'Unknown'}</div>
+Their whirlwind romance is passionate and intense, filled with rooftop conversations and magnetic chemistry. But Ryle has a "naked truth" - he hurts the women he loves when his anger takes over. As red flags appear, Lily reconnects with her first love, Atlas Corrigan, a homeless boy she once saved who is now a successful chef.
+
+Hoover's genius lies in making you fall in love with Ryle while slowly revealing the cycle of abuse. The book's title comes from a promise Lily's father made her mother - "It ends with us" - breaking the generational trauma. The courtroom scene and Lily's ultimate choice will shatter you.
+
+Spoiler-Free: This isn't just a romance - it's a survival guide wrapped in a love story. Trigger warnings for domestic abuse, but the healing arc is beautiful. Colleen Hoover's most important book.`,
+
+            'normalpeople': `Connell Waldron and Marianne Sheridan are classmates in a small Irish town. Connell is popular and athletic; Marianne is strange and friendless. But when Connell picks up his mother from Marianne's house (where she works as a cleaner), a secret connection forms.
+
+Their relationship begins physically - hidden meetings, stolen moments. But "Normal People" is about so much more than romance. It's about class, privilege, and how two people can shape each other across years. At Trinity College Dublin, their roles reverse: Marianne becomes popular and wealthy, while Connell struggles with imposter syndrome.
+
+Rooney writes with surgical precision about miscommunication, vulnerability, and the invisible threads that bind people together. The "will they/won't they" spans continents - Connell goes to New York, Marianne stays in Dublin with an abusive partner. Their reunion scene in Italy is literary perfection.
+
+Spoiler-Free: This is not a typical happy-ever-after romance. It's raw, uncomfortable, and deeply human. The final line - "He brings her goodness like a gift" - will haunt you for weeks. Best for readers who love character-driven literary fiction.`,
+
+            'lovehypothesis': `Olive Smith is a third-year PhD candidate at Stanford who doesn't believe in lasting romantic relationships. But when her best friend Anh shows interest in Olive's ex-boyfriend (whom Olive is totally over, really), Olive panics and kisses the first man she sees.
+
+That man is Dr. Adam Carlsen - a handsome, grumpy, terrifyingly brilliant young professor known for making students cry. To convince Anh she's moved on, Olive and Adam enter a fake dating agreement. What could go wrong?
+
+Hazelwood (a real-life neuroscience professor) nails academic culture - the lab politics, the grant writing desperation, the conference hookups. The fake relationship trope gets fresh life with Olive's scientific approach: she creates hypotheses about Adam's behavior, which he methodically disproves by being unexpectedly sweet. The scene where Adam defends Olive's research at a conference is peak romance.
+
+Spoiler-Free: This is for anyone who loves grumpy-sunshine dynamics, forced proximity (lab partners!), and a hero who says "I can't stop thinking about you" like he's reciting data. The sex positivity and consent representation are excellent.`,
+
+            'sevenhusbands': `In 2017, aging Hollywood icon Evelyn Hugo (now 79 and reclusive) grants unknown journalist Monique Grant an exclusive interview. The catch? Monique gets to write Evelyn's tell-all memoir - and Evelyn will reveal which of her seven husbands was her true love.
+
+The story flashes back to 1950s Hollywood, where Evelyn, born in Hell's Kitchen to Cuban parents, claws her way to stardom. Her marriages include: a closeted gay actor (publicity), a controlling producer (power), a kind musician (stability), and more. But the real love story? It's with Celia St. James, a rival actress with emerald eyes and an Irish temper.
+
+Reid weaves Old Hollywood glamour with devastating queer heartbreak. The lesbian romance between Evelyn and Celia spans decades, hidden from cameras but burning brighter than any of Evelyn's marriages. Monique's own storyline (a recent divorce, a mysterious father) parallels Evelyn's in surprising ways.
+
+Spoiler-Free: The final reveal about Monique's connection to Evelyn will make you gasp. This is a book about sacrifice, ambition, and whether true love can survive in a world that demands you hide it. Bring tissues.`
+        };
+
+        async function loadBookSummary() {
+            const bookId = document.getElementById('bookSelect').value;
+            const book = booksDB[bookId];
+            const summary = summariesDB[bookId];
+
+            // Simulate slight delay for realism
+            document.getElementById('bookContent').innerHTML = `
+                <div class="book-card">
+                    <div class="loading">
+                        <div class="spinner"></div>
+                        Loading summary...
                     </div>
                 </div>
-            `).join('');
+            `;
+
+            setTimeout(() => {
+                renderBookContent(book, summary, bookId);
+            }, 500);
         }
 
-        function saveRecentBook(book) {
-            let recent = JSON.parse(localStorage.getItem('recentBooks') || '[]');
-            recent = recent.filter(b => b.id !== book.id);
-            recent.unshift(book);
-            if (recent.length > 10) recent.pop();
-            localStorage.setItem('recentBooks', JSON.stringify(recent));
-        }
-
-        async function loadFeaturedBooks() {
-            const container = document.getElementById('featured-books-grid');
-            try {
-                const res = await fetch('/books.json');
-                const books = await res.json();
-                const featured = books.slice(0, 8);
-                container.innerHTML = featured.map(book => `
-                    <div class="book-card" onclick="location.href='book.html?id=${book.id}'">
-                        <img src="${book.cover_url || 'https://via.placeholder.com/180x220'}" class="book-cover" alt="" onerror="this.src='https://via.placeholder.com/180x220'">
+        function renderBookContent(book, summary, bookId) {
+            const html = `
+                <div class="book-card" id="summaryContainer">
+                    <div class="book-hero">
+                        <div class="book-cover">
+                            <div class="cover-3d">
+                                <i>📖</i>
+                                <h3>${book.title}</h3>
+                                <p style="color:white; margin-top:10px;">${book.author}</p>
+                            </div>
+                        </div>
                         <div class="book-info">
-                            <div class="book-title">${book.title.substring(0, 35)}</div>
-                            <div class="book-author">${book.author || 'Unknown'}</div>
+                            <h1 class="book-title">${book.title}</h1>
+                            <p style="color:#666; font-size:18px;">by ${book.author}</p>
+                            <div class="book-meta">
+                                <div class="meta-item"><span class="meta-label">ISBN:</span><span class="meta-value">${book.isbn}</span></div>
+                                <div class="meta-item"><span class="meta-label">Pages:</span><span class="meta-value">${book.pages}</span></div>
+                                <div class="meta-item"><span class="meta-label">Genre:</span><span class="meta-value">${book.genre}</span></div>
+                            </div>
                         </div>
                     </div>
-                `).join('');
-            } catch (e) {
-                container.innerHTML = '<p>Failed to load books. Please refresh.</p>';
+                    <div class="summary-section" id="pdfContent">
+                        <div class="summary-title">✨ Book Summary (Spoiler-Free)</div>
+                        <div class="summary-text">${summary.replace(/\n/g, '<br><br>')}</div>
+                        <br>
+                        <hr>
+                        <p style="color:#999; font-size:12px; margin-top:20px;">© BookSummarizer AI - Generated for reading purposes</p>
+                    </div>
+                </div>
+            `;
+            document.getElementById('bookContent').innerHTML = html;
+        }
+
+        async function downloadPDF() {
+            const element = document.getElementById('pdfContent');
+            if (!element) return;
+
+            // Show loading on button
+            const btn = event.target;
+            const originalText = btn.innerText;
+            btn.innerText = '⏳ Generating PDF...';
+            btn.disabled = true;
+
+            try {
+                const canvas = await html2canvas(element, {
+                    scale: 2,
+                    backgroundColor: '#ffffff',
+                    logging: false
+                });
+
+                const imgData = canvas.toDataURL('image/png');
+                const { jsPDF } = window.jspdf;
+                const pdf = new jsPDF('p', 'mm', 'a4');
+                const imgWidth = 210;
+                const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+                pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
+                pdf.save(`${book.title}_Summary.pdf`);
+            } catch (error) {
+                console.error('PDF Error:', error);
+                alert('Error generating PDF. Please try again.');
+            } finally {
+                btn.innerText = originalText;
+                btn.disabled = false;
             }
         }
 
-        document.addEventListener('DOMContentLoaded', () => {
-            updateCartCount();
-            updateAuthUI();
-            loadFeaturedBooks();
-            loadRecentReads();
-            window.saveRecentBook = saveRecentBook;
+        // Load default book on page load
+        window.addEventListener('DOMContentLoaded', () => {
+            loadBookSummary();
         });
     </script>
 </body>
